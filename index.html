@@ -3,598 +3,597 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>AI Interview Guide</title>
+<title>Market Trend Analyzer 📈</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  :root {
-    --bg: #0a0a0f; --bg2: #0f0f1a; --card: #111120;
-    --border: #1e1e2e; --text: #e8e4dc; --muted: #555;
-    --green: #00e5a0; --yellow: #f5c542; --red: #ff5e5e; --blue: #4f9eff;
-  }
-  body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; padding: 2rem; }
-  h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 0.25rem; }
-  h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; }
-  h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
-  .subtitle { color: var(--muted); font-size: 0.88rem; margin-bottom: 2rem; }
-  hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a0a0f; --bg2: #0f0f1a; --card: #111120;
+  --border: #1e1e2e; --text: #e8e4dc; --muted: #555;
+  --green: #00e5a0; --yellow: #f5c542; --red: #ff5e5e; --blue: #4f9eff;
+}
+body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; }
 
-  /* Step bar */
-  .step-bar { display: flex; margin-bottom: 2rem; }
-  .step { flex: 1; padding: 0.65rem 0.5rem; text-align: center; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; border-bottom: 3px solid var(--border); color: #444; }
-  .step.active { color: var(--green); border-bottom-color: var(--green); }
-  .step.done   { color: #555; border-bottom-color: #00e5a060; }
+/* Layout */
+.app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+.sidebar { background: var(--bg2); border-right: 1px solid var(--border); padding: 2rem 1.5rem; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.main { padding: 2rem 2.5rem; }
 
-  /* Pages */
-  .page { display: none; }
-  .page.active { display: block; }
+/* Sidebar */
+.sidebar-logo { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.25rem; }
+.sidebar-sub  { font-size: 0.75rem; color: var(--muted); font-family: 'IBM Plex Mono', monospace; margin-bottom: 1.5rem; }
+.sidebar hr   { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
+.sidebar ol   { padding-left: 1.2rem; color: #aaa; font-size: 0.82rem; line-height: 2.2; }
+.sidebar-note { font-size: 0.72rem; color: #444; font-family: 'IBM Plex Mono', monospace; margin-top: 1rem; }
 
-  /* Cards */
-  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
-  .card-accent { border-left: 3px solid var(--green); }
+/* Header */
+h1 { font-size: 2rem; font-weight: 800; }
+h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 0.5rem; }
+h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem; }
+.subtitle { color: var(--muted); font-size: 0.88rem; margin-bottom: 1.5rem; }
+hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
 
-  /* Form */
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
-  .form-group { margin-bottom: 1rem; }
-  label { font-size: 0.8rem; font-weight: 600; color: #aaa; display: block; margin-bottom: 0.4rem; }
-  input, select, textarea {
-    width: 100%; background: var(--card); border: 1px solid var(--border);
-    border-radius: 8px; color: var(--text); font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.85rem; padding: 0.65rem 0.85rem; outline: none;
-  }
-  input:focus, select:focus, textarea:focus { border-color: var(--green); }
-  select option { background: var(--card); }
-  textarea { resize: vertical; }
+/* Upload */
+.upload-zone {
+  background: #001a12; border: 1.5px dashed #00e5a030; border-radius: 12px;
+  padding: 2.5rem; text-align: center; cursor: pointer; transition: border-color 0.2s;
+  position: relative; margin-bottom: 1rem;
+}
+.upload-zone:hover { border-color: #00e5a080; }
+.upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.upload-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+.upload-text { font-size: 0.85rem; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+.upload-name { color: var(--green); font-size: 0.82rem; margin-top: 0.4rem; font-family: 'IBM Plex Mono', monospace; }
 
-  /* Focus area tags */
-  .tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.4rem; }
-  .tag { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; padding: 0.25rem 0.65rem; border-radius: 999px; border: 1px solid var(--border); color: #555; cursor: pointer; background: transparent; transition: all 0.2s; }
-  .tag.on { background: #00e5a015; border-color: #00e5a040; color: var(--green); }
+/* Button */
+.btn { background: var(--green); color: var(--bg); border: none; border-radius: 8px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; padding: 0.75rem 2rem; cursor: pointer; width: 100%; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+.btn:hover { opacity: 0.85; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
-  /* Buttons */
-  .btn { background: var(--green); color: var(--bg); border: none; border-radius: 8px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; padding: 0.7rem 1.5rem; cursor: pointer; transition: opacity 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
-  .btn:hover { opacity: 0.85; }
-  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-  .btn-full { width: 100%; justify-content: center; }
-  .btn-ghost { background: var(--border); color: var(--text); }
-  .btn-row { display: flex; gap: 0.75rem; margin-top: 1rem; }
+/* Spinner */
+.spin { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--bg); border-top-color: transparent; border-radius: 50%; animation: rot 0.7s linear infinite; }
+@keyframes rot { to { transform: rotate(360deg); } }
 
-  /* Spinner */
-  .spin { display: inline-block; width: 15px; height: 15px; border: 2px solid var(--bg); border-top-color: transparent; border-radius: 50%; animation: spin 0.7s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
+/* Status */
+.status { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.82rem; color: #aaa; font-family: 'IBM Plex Mono', monospace; display: none; margin-top: 0.75rem; }
+.status.show { display: block; }
 
-  /* Question card */
-  .q-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
-  .q-meta { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; align-items: center; }
-  .q-num { font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: var(--green); letter-spacing: 0.2em; }
-  .badge { font-size: 0.62rem; padding: 0.1rem 0.5rem; border-radius: 999px; font-family: 'IBM Plex Mono', monospace; border: 1px solid; }
-  .q-text { font-size: 0.92rem; line-height: 1.6; font-weight: 600; margin-bottom: 0.35rem; }
-  .q-hint { font-size: 0.75rem; color: #555; font-family: 'IBM Plex Mono', monospace; }
+/* Error */
+.error-box { background: #ff5e5e15; border: 1px solid #ff5e5e40; color: var(--red); border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.85rem; display: none; margin-top: 0.75rem; }
+.error-box.show { display: block; }
 
-  /* Progress */
-  .prog-label { display: flex; justify-content: space-between; font-size: 0.72rem; color: #555; font-family: 'IBM Plex Mono', monospace; margin-bottom: 0.4rem; }
-  .prog-track { background: #1e1e2e; border-radius: 999px; height: 5px; margin-bottom: 1.5rem; overflow: hidden; }
-  .prog-fill  { height: 100%; background: var(--green); border-radius: 999px; transition: width 0.4s; }
+/* Metrics grid */
+.metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+.metric-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; text-align: center; }
+.metric-val { font-size: 2.4rem; font-weight: 800; font-family: 'IBM Plex Mono', monospace; line-height: 1; }
+.metric-lbl { font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-top: 0.5rem; }
+.c-green { color: var(--green); } .c-yellow { color: var(--yellow); } .c-red { color: var(--red); } .c-blue { color: var(--blue); }
 
-  /* Chat */
-  .chat-log { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem; max-height: 360px; overflow-y: auto; }
-  .bubble-ai   { background: var(--card); border: 1px solid var(--border); border-radius: 12px 12px 12px 4px; padding: 0.85rem 1.1rem; max-width: 90%; }
-  .bubble-user { background: #001a12; border: 1px solid #00e5a020; border-radius: 12px 12px 4px 12px; padding: 0.85rem 1.1rem; max-width: 85%; align-self: flex-end; }
-  .blabel { font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: #555; margin-bottom: 0.3rem; font-family: 'IBM Plex Mono', monospace; }
-  .btext  { font-size: 0.88rem; line-height: 1.7; }
+/* Section card */
+.section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
+.insight-card { background: var(--card); border-left: 3px solid var(--green); border-radius: 0 12px 12px 0; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+.insight-label { font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; font-family: 'IBM Plex Mono', monospace; }
+.insight-text  { font-size: 0.95rem; line-height: 1.7; color: var(--text); }
 
-  /* Scores */
-  .scores-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin-bottom: 1.25rem; }
-  .metric { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; text-align: center; }
-  .metric-val { font-size: 2.4rem; font-weight: 800; font-family: 'IBM Plex Mono', monospace; }
-  .metric-lbl { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: #555; margin-top: 0.3rem; }
-  .score-high { color: var(--green); } .score-mid { color: var(--yellow); } .score-low { color: var(--red); }
+/* Chart container */
+.chart-wrap { position: relative; height: 300px; margin-bottom: 1rem; }
 
-  /* Feedback cols */
-  .fb-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.25rem; }
-  .fb-box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
-  .fb-title { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: #555; margin-bottom: 0.75rem; }
-  .fb-item { padding-left: 0.75rem; margin-bottom: 0.5rem; font-size: 0.85rem; line-height: 1.5; }
-  .fb-s { border-left: 3px solid var(--green); }
-  .fb-w { border-left: 3px solid var(--red); }
-  .fb-sg { border-left: 3px solid var(--yellow); }
+/* Pills */
+.pill-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+.pill { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; padding: 0.2rem 0.65rem; border-radius: 999px; font-weight: 500; border: 1px solid; }
+.pill-green  { background: #00e5a015; border-color: #00e5a040; color: var(--green); }
+.pill-red    { background: #ff5e5e15; border-color: #ff5e5e40; color: var(--red); }
+.pill-blue   { background: #4f9eff15; border-color: #4f9eff40; color: var(--blue); }
+.pill-yellow { background: #f5c54215; border-color: #f5c54240; color: var(--yellow); }
 
-  /* Verdict */
-  .verdict { border-radius: 12px; padding: 1.5rem; text-align: center; margin-bottom: 1.5rem; }
-  .verdict-lbl  { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; font-family: 'IBM Plex Mono', monospace; margin-bottom: 0.4rem; }
-  .verdict-text { font-size: 1.4rem; font-weight: 800; }
-  .verdict-sum  { font-size: 0.88rem; color: #888; margin-top: 0.5rem; }
+/* Pill columns */
+.pill-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }
+.pill-col-title { font-size: 0.78rem; font-weight: 700; margin-bottom: 0.5rem; }
 
-  /* Expander */
-  details { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 0.6rem; }
-  summary { font-size: 0.88rem; font-weight: 600; cursor: pointer; }
-  .detail-inner { margin-top: 0.85rem; font-size: 0.85rem; }
-  .ans-box { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; color: #aaa; font-size: 0.85rem; margin-bottom: 0.75rem; }
-  .ideal { border-left: 3px solid var(--yellow); padding-left: 0.75rem; font-size: 0.82rem; color: var(--yellow); }
+/* Skill insights list */
+.skill-row { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 0.5rem; display: flex; gap: 1rem; align-items: center; }
+.skill-name  { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--green); min-width: 120px; }
+.skill-trend { font-size: 0.75rem; color: var(--muted); min-width: 80px; }
+.skill-comment { font-size: 0.78rem; color: #888; }
 
-  /* Next steps */
-  .next-item { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 0.5rem; display: flex; gap: 1rem; align-items: center; }
-  .next-num  { font-family: 'IBM Plex Mono', monospace; color: var(--green); font-size: 0.85rem; min-width: 28px; }
+/* Job cards */
+.job-card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin-bottom: 0.75rem; }
+.job-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.job-title  { font-weight: 700; font-size: 0.95rem; }
+.job-match  { font-family: 'IBM Plex Mono', monospace; font-size: 1.1rem; font-weight: 800; }
+.job-salary { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.5rem; }
+.job-section-label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.3rem; font-family: 'IBM Plex Mono', monospace; }
 
-  /* Alert */
-  .alert { border-radius: 8px; padding: 0.65rem 1rem; font-size: 0.82rem; margin-bottom: 1rem; display: none; }
-  .alert.show { display: block; }
-  .alert-err { background: #ff5e5e15; border: 1px solid #ff5e5e40; color: var(--red); }
-  .alert-ok  { background: #00e5a015; border: 1px solid #00e5a040; color: var(--green); }
+/* Salary table */
+.sal-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.sal-table th { text-align: left; color: var(--muted); font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-weight: 500; }
+.sal-table td { padding: 0.6rem 0.75rem; border-bottom: 1px solid #1e1e2e50; }
+.sal-table tr:last-child td { border-bottom: none; }
+.sal-table tr:hover td { background: #ffffff05; }
 
-  /* Complete banner */
-  .complete-banner { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; text-align: center; margin-bottom: 1rem; }
+/* Salary metrics */
+.sal-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem; }
 
-  @media (max-width: 700px) {
-    .form-row, .scores-grid, .fb-cols { grid-template-columns: 1fr; }
-    .scores-grid { grid-template-columns: 1fr 1fr; }
-  }
+/* Learning path */
+.learn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.learn-card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem; }
+.learn-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
+.learn-skill { font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; font-weight: 700; }
+.learn-badge { font-size: 0.62rem; padding: 0.12rem 0.5rem; border-radius: 999px; font-family: 'IBM Plex Mono', monospace; border: 1px solid; }
+.learn-resource { font-size: 0.82rem; color: #c8c4bc; margin-bottom: 0.5rem; }
+.learn-meta { display: flex; gap: 1rem; font-size: 0.75rem; color: var(--muted); }
+.learn-salary { color: var(--green) !important; }
+
+/* Gap rows */
+.gap-row { background: var(--bg); border: 1px solid #ff5e5e20; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 0.5rem; display: flex; gap: 1rem; align-items: center; }
+.gap-skill { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--red); min-width: 150px; }
+.gap-why   { font-size: 0.78rem; color: #888; }
+
+/* Results hidden initially */
+#results { display: none; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .metrics-grid { grid-template-columns: 1fr 1fr; }
+  .pill-cols, .learn-grid { grid-template-columns: 1fr; }
+  .sal-metrics { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
+<div class="app">
 
-<h1>🎯 AI Interview Guide</h1>
-<p class="subtitle">Mock interview simulation powered by Gemini — Backend: http://localhost:8000</p>
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">📈 Market AI</div>
+  <div class="sidebar-sub">Trend Analyzer</div>
+  <hr/>
+  <p style="font-size:0.82rem;font-weight:700;margin-bottom:0.5rem">Powered by Gemini AI</p>
+  <ol>
+    <li>Upload your resume PDF</li>
+    <li>Hit Analyze Market</li>
+    <li>Get real-time insights:</li>
+  </ol>
+  <ul style="padding-left:1.2rem;color:#aaa;font-size:0.78rem;line-height:2.1;margin-top:0.5rem">
+    <li>Skill demand scores</li>
+    <li>Market trend charts</li>
+    <li>Job role matches</li>
+    <li>Salary insights</li>
+    <li>Skill gap report</li>
+    <li>Learning path</li>
+  </ul>
+  <div class="sidebar-note">No dataset needed —<br/>Gemini knows the market</div>
+</aside>
 
-<!-- Step Bar -->
-<div class="step-bar">
-  <div class="step active" id="s1">1 · Setup</div>
-  <div class="step" id="s2">2 · Questions</div>
-  <div class="step" id="s3">3 · Simulation</div>
-  <div class="step" id="s4">4 · Feedback</div>
+<!-- Main -->
+<main class="main">
+  <h1>📈 Market Trend Analyzer</h1>
+  <p class="subtitle">AI-powered job market analysis — upload your resume and get instant insights</p>
+  <hr/>
+
+  <!-- Upload -->
+  <h3>📄 Upload Your Resume</h3>
+  <div class="upload-zone" id="dropZone">
+    <input type="file" id="resumeFile" accept=".pdf" onchange="onFileChange(this)"/>
+    <div class="upload-icon">📄</div>
+    <div class="upload-text">Drop PDF here or click to browse</div>
+    <div class="upload-name" id="fileName"></div>
+  </div>
+  <button class="btn" id="analyzeBtn" onclick="runAnalysis()">🔍 &nbsp;Analyze Market</button>
+  <div class="status" id="status">⏳ Initializing...</div>
+  <div class="error-box" id="errBox"></div>
+
+  <!-- Results -->
+  <div id="results">
+    <hr/>
+    <h2>📊 Market Analysis Results</h2>
+
+    <!-- Summary -->
+    <div class="insight-card" id="summaryCard">
+      <div class="insight-label">AI Market Assessment</div>
+      <div class="insight-text" id="summaryText"></div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="metrics-grid">
+      <div class="metric-card"><div class="metric-val c-green" id="mSkills">—</div><div class="metric-lbl">Skills Detected</div></div>
+      <div class="metric-card"><div class="metric-val" id="mHighDemand">—</div><div class="metric-lbl">High Demand Skills</div></div>
+      <div class="metric-card"><div class="metric-val" id="mMatch">—</div><div class="metric-lbl">Avg Job Match</div></div>
+      <div class="metric-card"><div class="metric-val" id="mGaps">—</div><div class="metric-lbl">Skill Gaps Found</div></div>
+    </div>
+
+    <!-- 1. Skill Demand Chart -->
+    <div class="section">
+      <h3>🔍 Your Skills vs Market Demand</h3>
+      <div class="chart-wrap"><canvas id="skillDemandChart"></canvas></div>
+      <div class="pill-cols" id="demandPills"></div>
+      <div id="skillInsights" style="margin-top:1rem"></div>
+    </div>
+
+    <!-- 2. Trending Skills Chart -->
+    <div class="section">
+      <h3>📈 Top Trending Skills in 2024–2025 Market</h3>
+      <div class="chart-wrap"><canvas id="trendingChart"></canvas></div>
+    </div>
+
+    <!-- 3. Skill Gaps Chart -->
+    <div class="section">
+      <h3>❌ Critical Skill Gaps</h3>
+      <div class="chart-wrap"><canvas id="gapChart"></canvas></div>
+      <div id="gapList" style="margin-top:1rem"></div>
+    </div>
+
+    <!-- 4. Job Matches Chart -->
+    <div class="section">
+      <h3>💼 Best Matching Job Roles</h3>
+      <div class="chart-wrap"><canvas id="jobChart"></canvas></div>
+      <div id="jobCards" style="margin-top:1.25rem"></div>
+    </div>
+
+    <!-- 5. Salary Insights -->
+    <div class="section">
+      <h3>💰 Salary Insights</h3>
+      <div id="salSummary" style="background:#f5c54215;border:1px solid #f5c54240;border-radius:8px;padding:0.75rem 1rem;font-size:0.85rem;color:#f5c542;margin-bottom:1.25rem"></div>
+      <div class="sal-metrics">
+        <div class="metric-card"><div class="metric-val c-yellow" id="salCurrent">—</div><div class="metric-lbl">Current Estimated Range</div></div>
+        <div class="metric-card"><div class="metric-val c-green" id="salPotential">—</div><div class="metric-lbl">Potential After Upskilling</div></div>
+      </div>
+      <div class="chart-wrap" style="height:260px"><canvas id="salaryChart"></canvas></div>
+      <table class="sal-table" id="salTable">
+        <thead><tr><th>Role</th><th>Min</th><th>Avg</th><th>Max</th></tr></thead>
+        <tbody id="salBody"></tbody>
+      </table>
+    </div>
+
+    <!-- 6. Learning Path -->
+    <div class="section">
+      <h3>🎯 Prioritized Learning Path</h3>
+      <p style="color:var(--muted);font-size:0.82rem;margin-bottom:1rem">Skills to learn for maximum career impact</p>
+      <div class="learn-grid" id="learnGrid"></div>
+    </div>
+
+    <!-- Raw JSON -->
+    <details style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-top:1rem">
+      <summary style="font-size:0.85rem;font-weight:600;cursor:pointer">🔩 Raw JSON</summary>
+      <pre id="rawJson" style="margin-top:0.75rem;font-size:0.7rem;color:#888;overflow:auto;max-height:400px"></pre>
+    </details>
+  </div>
+</main>
 </div>
 
-<div class="alert alert-err" id="globalErr"></div>
-
-<!-- ═══════════════════════════════════════════════════
-     PAGE 1 — SETUP
-════════════════════════════════════════════════════ -->
-<div class="page active" id="page1">
-  <h2>🚀 Setup Interview</h2>
-  <div class="form-row">
-    <div class="form-group">
-      <label>Job Role / Position</label>
-      <input type="text" id="role" placeholder="e.g. Senior Data Scientist, Frontend Engineer..."/>
-    </div>
-    <div class="form-group">
-      <label>Experience Level</label>
-      <select id="experience">
-        <option>Entry Level (0-2 yrs)</option>
-        <option>Mid Level (2-5 yrs)</option>
-        <option selected>Senior Level (5-8 yrs)</option>
-        <option>Lead / Principal (8+ yrs)</option>
-      </select>
-    </div>
-  </div>
-  <div class="form-group">
-    <label>Focus Areas (optional — click to select)</label>
-    <div class="tags" id="focusTags">
-      <span class="tag" onclick="toggleTag(this)">Machine Learning</span>
-      <span class="tag" onclick="toggleTag(this)">System Design</span>
-      <span class="tag" onclick="toggleTag(this)">Data Structures</span>
-      <span class="tag" onclick="toggleTag(this)">Behavioral</span>
-      <span class="tag" onclick="toggleTag(this)">Leadership</span>
-      <span class="tag" onclick="toggleTag(this)">Frontend</span>
-      <span class="tag" onclick="toggleTag(this)">Backend</span>
-      <span class="tag" onclick="toggleTag(this)">DevOps</span>
-      <span class="tag" onclick="toggleTag(this)">Cloud</span>
-      <span class="tag" onclick="toggleTag(this)">SQL</span>
-      <span class="tag" onclick="toggleTag(this)">Python</span>
-    </div>
-  </div>
-  <button class="btn btn-full" id="startBtn" onclick="startInterview()">🎯 &nbsp;Start Interview Prep</button>
-</div>
-
-<!-- ═══════════════════════════════════════════════════
-     PAGE 2 — QUESTIONS
-════════════════════════════════════════════════════ -->
-<div class="page" id="page2">
-  <h2 id="qPageTitle">📋 Interview Questions</h2>
-  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1.25rem">Review your AI-generated questions before the simulation begins</p>
-  <div id="questionsList"></div>
-  <div class="btn-row">
-    <button class="btn btn-ghost" onclick="regenQuestions()">🔄 Regenerate</button>
-    <button class="btn" onclick="startSimulation()">▶️ &nbsp;Start Mock Interview</button>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════
-     PAGE 3 — SIMULATION
-════════════════════════════════════════════════════ -->
-<div class="page" id="page3">
-  <h2 id="simTitle">💬 Mock Interview</h2>
-
-  <div class="prog-label">
-    <span id="progText">Question 1 of 7</span>
-    <span id="progPct">0% complete</span>
-  </div>
-  <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
-
-  <!-- Chat history -->
-  <div class="chat-log" id="chatLog"></div>
-
-  <!-- Current question card -->
-  <div id="currentQCard" class="card card-accent" style="display:none">
-    <div id="currentQMeta" style="font-size:0.65rem;letter-spacing:0.2em;color:var(--green);font-family:'IBM Plex Mono',monospace;margin-bottom:0.5rem"></div>
-    <div id="currentQText" style="font-size:1rem;font-weight:600;line-height:1.7;margin-bottom:1rem"></div>
-    <textarea id="answerInput" rows="5" placeholder="Type your answer here... Take your time, think it through."></textarea>
-    <div class="btn-row">
-      <button class="btn" style="flex:3" id="submitBtn" onclick="submitAnswer()">📨 &nbsp;Submit Answer</button>
-      <button class="btn btn-ghost" style="flex:1" onclick="skipQuestion()">⏭ Skip</button>
-    </div>
-  </div>
-
-  <!-- Complete state -->
-  <div id="completeCard" style="display:none">
-    <div class="complete-banner">
-      <div style="font-size:2.5rem;margin-bottom:0.5rem">🎉</div>
-      <div style="font-size:1.1rem;font-weight:700;margin-bottom:0.5rem">Interview Simulation Complete!</div>
-      <div id="completeSub" style="color:var(--muted);font-size:0.88rem"></div>
-    </div>
-    <button class="btn btn-full" onclick="getFeedback()">📊 &nbsp;Get Performance Feedback</button>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════
-     PAGE 4 — FEEDBACK
-════════════════════════════════════════════════════ -->
-<div class="page" id="page4">
-  <h2 id="fbTitle">📊 Performance Feedback</h2>
-  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1.25rem">Detailed AI-powered analysis of your interview performance</p>
-
-  <div id="verdictBanner"></div>
-  <div class="scores-grid" id="scoresGrid"></div>
-
-  <div class="fb-cols" id="fbCols"></div>
-
-  <h3>📝 Question-by-Question Breakdown</h3>
-  <div id="perQSection" style="margin-bottom:1.5rem"></div>
-
-  <h3>🎯 Next Steps</h3>
-  <div id="nextSteps" style="margin-bottom:1.5rem"></div>
-
-  <details style="margin-top:1rem">
-    <summary>🔩 Raw JSON</summary>
-    <pre id="rawJson" style="margin-top:0.75rem;font-size:0.72rem;color:#888;overflow:auto;max-height:300px"></pre>
-  </details>
-
-  <button class="btn btn-full btn-ghost" style="margin-top:1.5rem" onclick="resetAll()">🔄 Start New Interview</button>
-</div>
-
-<!-- ═══════════════════════════════════════════════════
-     JAVASCRIPT
-════════════════════════════════════════════════════ -->
 <script>
 const API = 'http://localhost:8000';
-
-// ── State ─────────────────────────────────────────────────────────────────
-let state = {
-  role: '',
-  experience: '',
-  focus: [],
-  questions: [],
-  answers: [],
-  chatHistory: [],    // [{question, answer}] for /chat history param
-  chatLog: [],        // [{role:'ai'|'user', text}] for display
-  currentIdx: 0,
-};
+let charts = {};
 
 // ── Helpers ───────────────────────────────────────────────────────────────
+function onFileChange(input) {
+  document.getElementById('fileName').textContent = input.files[0]?.name ? `📎 ${input.files[0].name}` : '';
+}
+
+function setStatus(msg) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
 function showErr(msg) {
-  const el = document.getElementById('globalErr');
+  const el = document.getElementById('errBox');
   el.textContent = '❌ ' + msg;
   el.classList.add('show');
-  setTimeout(() => el.classList.remove('show'), 6000);
+  document.getElementById('status').classList.remove('show');
 }
 
-function setLoading(btnId, loading, label) {
-  const btn = document.getElementById(btnId);
-  btn.disabled = loading;
-  btn.innerHTML = loading ? `<span class="spin"></span> &nbsp;${label}` : label;
+function scoreColor(v) { return v >= 75 ? '#00e5a0' : v >= 50 ? '#f5c542' : '#ff5e5e'; }
+function scoreClass(v) { return v >= 75 ? 'c-green' : v >= 50 ? 'c-yellow' : 'c-red'; }
+
+function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+const CHART_DEFAULTS = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { ticks: { color: '#888', font: { family: 'IBM Plex Mono', size: 11 } }, grid: { color: '#1e1e2e' } },
+    y: { ticks: { color: '#888', font: { family: 'IBM Plex Mono', size: 11 } }, grid: { color: '#1e1e2e' } }
+  }
+};
+
+// ── Main ──────────────────────────────────────────────────────────────────
+async function runAnalysis() {
+  const file = document.getElementById('resumeFile').files[0];
+  if (!file) { showErr('Please upload a resume PDF.'); return; }
+
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> &nbsp;Analyzing...';
+  document.getElementById('errBox').classList.remove('show');
+  document.getElementById('results').style.display = 'none';
+  setStatus('📄 Reading your resume...');
+
+  const form = new FormData();
+  form.append('resume', file);
+
+  try {
+    setStatus('🧠 Gemini is analyzing the job market for your skills... (this may take 15-30s)');
+    const res  = await fetch(`${API}/analyze`, { method: 'POST', body: form });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Analysis failed.');
+
+    document.getElementById('status').classList.remove('show');
+    renderResults(data);
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+  } catch (e) {
+    showErr(e.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '🔍 &nbsp;Analyze Market';
+  }
 }
 
-function goToPage(n) {
-  document.querySelectorAll('.page').forEach((p, i) => p.classList.toggle('active', i + 1 === n));
-  ['s1','s2','s3','s4'].forEach((id, i) => {
-    const el = document.getElementById(id);
-    el.className = 'step' + (i + 1 === n ? ' active' : i + 1 < n ? ' done' : '');
+// ── Render ────────────────────────────────────────────────────────────────
+function renderResults(data) {
+  const skillDemand  = data.skill_demand   || [];
+  const trending     = data.trending_skills || [];
+  const gaps         = data.skill_gaps      || [];
+  const jobs         = data.job_matches     || [];
+  const salary       = data.salary_insights || {};
+  const learning     = data.learning_path   || [];
+  const skills       = data.skills          || [];
+
+  // Summary
+  document.getElementById('summaryText').textContent = data.market_summary || '';
+
+  // Metrics
+  const highDemand = skillDemand.filter(s => s.level === 'high').length;
+  const avgMatch   = jobs.length ? Math.round(jobs.reduce((a, j) => a + (j.match_pct || 0), 0) / jobs.length) : 0;
+  document.getElementById('mSkills').textContent    = skills.length;
+  document.getElementById('mHighDemand').textContent = highDemand;
+  document.getElementById('mHighDemand').className  = 'metric-val ' + scoreClass(highDemand * 10);
+  document.getElementById('mMatch').textContent     = avgMatch + '%';
+  document.getElementById('mMatch').className       = 'metric-val ' + scoreClass(avgMatch);
+  document.getElementById('mGaps').textContent      = gaps.length;
+  document.getElementById('mGaps').className        = 'metric-val ' + (gaps.length > 5 ? 'c-red' : 'c-yellow');
+
+  // 1. Skill Demand Chart
+  renderSkillDemand(skillDemand);
+
+  // 2. Trending Chart
+  renderTrending(trending);
+
+  // 3. Gaps Chart
+  renderGaps(gaps);
+
+  // 4. Jobs Chart
+  renderJobs(jobs);
+
+  // 5. Salary
+  renderSalary(salary, jobs);
+
+  // 6. Learning Path
+  renderLearning(learning);
+
+  // Raw JSON
+  document.getElementById('rawJson').textContent = JSON.stringify(data, null, 2);
+}
+
+// ─ 1. Skill Demand ────────────────────────────────────────────────────────
+function renderSkillDemand(skillDemand) {
+  const sorted = [...skillDemand].sort((a, b) => b.demand_score - a.demand_score);
+
+  destroyChart('skillDemandChart');
+  const ctx = document.getElementById('skillDemandChart').getContext('2d');
+  charts['skillDemandChart'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sorted.map(s => s.skill),
+      datasets: [{
+        data: sorted.map(s => s.demand_score),
+        backgroundColor: sorted.map(s => {
+          if (s.level === 'high')   return '#00e5a0cc';
+          if (s.level === 'medium') return '#f5c542cc';
+          return '#ff5e5ecc';
+        }),
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      ...CHART_DEFAULTS,
+      plugins: {
+        ...CHART_DEFAULTS.plugins,
+        tooltip: { callbacks: { label: ctx => `Demand: ${ctx.raw}/100` } }
+      },
+      scales: { ...CHART_DEFAULTS.scales, y: { ...CHART_DEFAULTS.scales.y, max: 100 } }
+    }
+  });
+
+  // Pill cols
+  document.getElementById('demandPills').innerHTML = `
+    <div>
+      <div class="pill-col-title" style="color:var(--green)">🔥 High Demand</div>
+      <div class="pill-row">${skillDemand.filter(s=>s.level==='high').map(s=>`<span class="pill pill-green">${s.skill}</span>`).join('') || '<span style="color:#444">None</span>'}</div>
+    </div>
+    <div>
+      <div class="pill-col-title" style="color:var(--yellow)">⚡ Medium Demand</div>
+      <div class="pill-row">${skillDemand.filter(s=>s.level==='medium').map(s=>`<span class="pill pill-yellow">${s.skill}</span>`).join('') || '<span style="color:#444">None</span>'}</div>
+    </div>
+    <div>
+      <div class="pill-col-title" style="color:var(--red)">❄️ Low Demand</div>
+      <div class="pill-row">${skillDemand.filter(s=>s.level==='low').map(s=>`<span class="pill pill-red">${s.skill}</span>`).join('') || '<span style="color:#444">None</span>'}</div>
+    </div>`;
+
+  // Insights
+  const icons = { rising: '📈', declining: '📉', stable: '➡️' };
+  document.getElementById('skillInsights').innerHTML =
+    '<div style="font-size:0.78rem;font-weight:700;margin-bottom:0.5rem">💬 Skill Insights</div>' +
+    sorted.slice(0, 6).map(s => `
+      <div class="skill-row">
+        <span class="skill-name">${s.skill}</span>
+        <span class="skill-trend">${icons[s.trend]||'➡️'} ${(s.trend||'').charAt(0).toUpperCase()+s.trend.slice(1)}</span>
+        <span class="skill-comment">${s.market_comment || ''}</span>
+      </div>`).join('');
+}
+
+// ─ 2. Trending ────────────────────────────────────────────────────────────
+function renderTrending(trending) {
+  const sorted = [...trending].sort((a, b) => b.demand_score - a.demand_score);
+  destroyChart('trendingChart');
+  const ctx = document.getElementById('trendingChart').getContext('2d');
+  charts['trendingChart'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sorted.map(s => s.skill),
+      datasets: [{
+        data: sorted.map(s => s.demand_score),
+        backgroundColor: sorted.map((_, i) => `hsla(${160 - i*10}, 80%, ${50 + i*2}%, 0.8)`),
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      ...CHART_DEFAULTS,
+      indexAxis: 'y',
+      scales: {
+        x: { ...CHART_DEFAULTS.scales.x, max: 100 },
+        y: { ...CHART_DEFAULTS.scales.y }
+      }
+    }
   });
 }
 
-function toggleTag(el) { el.classList.toggle('on'); }
-
-function scoreClass(v) { return v >= 75 ? 'score-high' : v >= 50 ? 'score-mid' : 'score-low'; }
-function scoreColor(v) { return v >= 75 ? '#00e5a0' : v >= 50 ? '#f5c542' : '#ff5e5e'; }
-
-const TYPE_COLORS = { technical:'#4f9eff', behavioral:'#00e5a0', 'system design':'#f5c542', situational:'#ff9f5e' };
-const DIFF_COLORS = { easy:'#00e5a0', medium:'#f5c542', hard:'#ff5e5e' };
-
-// ── PAGE 1 — SETUP ────────────────────────────────────────────────────────
-async function startInterview() {
-  const role = document.getElementById('role').value.trim();
-  if (!role) { showErr('Please enter a job role.'); return; }
-
-  state.role       = role;
-  state.experience = document.getElementById('experience').value;
-  state.focus      = [...document.querySelectorAll('#focusTags .tag.on')].map(t => t.textContent);
-
-  setLoading('startBtn', true, '⏳ Generating Questions...');
-
-  try {
-    const res = await fetch(`${API}/generate-questions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ role: state.role, experience: state.experience, focus: state.focus })
-    });
-    if (!res.ok) throw new Error((await res.json()).detail);
-    const data = await res.json();
-    state.questions = data.questions;
-    renderQuestions();
-    goToPage(2);
-  } catch (e) {
-    showErr(e.message || 'Failed to generate questions.');
-  } finally {
-    setLoading('startBtn', false, '🎯 &nbsp;Start Interview Prep');
-  }
-}
-
-// ── PAGE 2 — QUESTIONS ────────────────────────────────────────────────────
-function renderQuestions() {
-  document.getElementById('qPageTitle').textContent = `📋 Interview Questions — ${state.role}`;
-  const container = document.getElementById('questionsList');
-  container.innerHTML = state.questions.map(q => {
-    const tc = TYPE_COLORS[q.type?.toLowerCase()] || '#888';
-    const dc = DIFF_COLORS[q.difficulty?.toLowerCase()] || '#888';
-    return `
-    <div class="q-card">
-      <div class="q-meta">
-        <span class="q-num">Q${q.id}</span>
-        <span class="badge" style="color:${tc};border-color:${tc}40;background:${tc}15">${(q.type||'').toUpperCase()}</span>
-        <span class="badge" style="color:${dc};border-color:${dc}40;background:${dc}15">${(q.difficulty||'').toUpperCase()}</span>
-      </div>
-      <div class="q-text">${q.question}</div>
-      <div class="q-hint">💡 ${q.hint || ''}</div>
-    </div>`;
-  }).join('');
-}
-
-async function regenQuestions() {
-  try {
-    const res = await fetch(`${API}/generate-questions`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ role: state.role, experience: state.experience, focus: state.focus })
-    });
-    if (!res.ok) throw new Error((await res.json()).detail);
-    state.questions = (await res.json()).questions;
-    renderQuestions();
-  } catch (e) { showErr(e.message); }
-}
-
-// ── PAGE 3 — SIMULATION ───────────────────────────────────────────────────
-function startSimulation() {
-  state.answers    = [];
-  state.chatHistory = [];
-  state.chatLog    = [];
-  state.currentIdx = 0;
-  document.getElementById('simTitle').textContent = `💬 Mock Interview — ${state.role}`;
-  document.getElementById('chatLog').innerHTML = '';
-  goToPage(3);
-  renderCurrentQuestion();
-}
-
-function updateProgress() {
-  const idx   = state.currentIdx;
-  const total = state.questions.length;
-  const pct   = Math.round((idx / total) * 100);
-  document.getElementById('progText').textContent  = `Question ${Math.min(idx + 1, total)} of ${total}`;
-  document.getElementById('progPct').textContent   = `${pct}% complete`;
-  document.getElementById('progFill').style.width  = pct + '%';
-}
-
-function renderCurrentQuestion() {
-  const idx   = state.currentIdx;
-  const total = state.questions.length;
-  updateProgress();
-
-  if (idx >= total) {
-    // All done
-    document.getElementById('currentQCard').style.display  = 'none';
-    document.getElementById('completeCard').style.display  = 'block';
-    const answered = state.answers.filter(a => a !== '[Skipped]').length;
-    document.getElementById('completeSub').textContent =
-      `You answered ${answered} out of ${total} questions`;
-    return;
-  }
-
-  document.getElementById('completeCard').style.display  = 'none';
-  document.getElementById('currentQCard').style.display  = 'block';
-
-  const q  = state.questions[idx];
-  const tc = TYPE_COLORS[q.type?.toLowerCase()] || '#888';
-  const dc = DIFF_COLORS[q.difficulty?.toLowerCase()] || '#888';
-
-  document.getElementById('currentQMeta').textContent =
-    `QUESTION ${idx + 1} · ${(q.type||'').toUpperCase()} · ${(q.difficulty||'').toUpperCase()}`;
-  document.getElementById('currentQText').textContent = q.question;
-  document.getElementById('answerInput').value = '';
-}
-
-function addBubble(role, text) {
-  state.chatLog.push({ role, text });
-  const log = document.getElementById('chatLog');
-  const div = document.createElement('div');
-  div.className = role === 'ai' ? 'bubble-ai' : 'bubble-user';
-  div.innerHTML = `
-    <div class="blabel">${role === 'ai' ? '🤖 Interviewer' : '👤 You'}</div>
-    <div class="btext">${text}</div>`;
-  log.appendChild(div);
-  log.scrollTop = log.scrollHeight;
-}
-
-async function submitAnswer() {
-  const answer = document.getElementById('answerInput').value.trim();
-  if (!answer) { showErr('Please type an answer before submitting.'); return; }
-
-  const idx = state.currentIdx;
-  const q   = state.questions[idx];
-
-  // Show in chat
-  addBubble('ai',   q.question);
-  addBubble('user', answer);
-
-  state.answers.push(answer);
-
-  setLoading('submitBtn', true, 'Interviewer is responding...');
-
-  // Get follow-up (not for last question)
-  if (idx < state.questions.length - 1) {
-    try {
-      const res = await fetch(`${API}/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          role:    state.role,
-          question: q.question,
-          answer:  answer,
-          history: state.chatHistory
-        })
-      });
-      if (!res.ok) throw new Error((await res.json()).detail);
-      const { followup } = await res.json();
-      addBubble('ai', followup);
-    } catch (e) {
-      showErr('Could not get interviewer response: ' + e.message);
+// ─ 3. Gaps ────────────────────────────────────────────────────────────────
+function renderGaps(gaps) {
+  const sorted = [...gaps].sort((a, b) => b.demand_score - a.demand_score);
+  destroyChart('gapChart');
+  const ctx = document.getElementById('gapChart').getContext('2d');
+  charts['gapChart'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sorted.map(s => s.skill),
+      datasets: [{
+        data: sorted.map(s => s.demand_score),
+        backgroundColor: '#ff5e5ecc',
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      ...CHART_DEFAULTS,
+      scales: { ...CHART_DEFAULTS.scales, y: { ...CHART_DEFAULTS.scales.y, max: 100 } }
     }
-  }
+  });
 
-  // Save to history for context
-  state.chatHistory.push({ question: q.question, answer });
-
-  setLoading('submitBtn', false, '📨 &nbsp;Submit Answer');
-  state.currentIdx++;
-  renderCurrentQuestion();
+  document.getElementById('gapList').innerHTML = sorted.map(g => `
+    <div class="gap-row">
+      <span class="gap-skill">${g.skill}</span>
+      <span class="gap-why">${g.why_needed || ''}</span>
+    </div>`).join('') || '<div style="color:var(--green)">🎉 No critical skill gaps found!</div>';
 }
 
-function skipQuestion() {
-  const q = state.questions[state.currentIdx];
-  addBubble('ai',   q.question);
-  addBubble('user', '[Skipped]');
-  state.answers.push('[Skipped]');
-  state.chatHistory.push({ question: q.question, answer: '[Skipped]' });
-  state.currentIdx++;
-  renderCurrentQuestion();
-}
+// ─ 4. Jobs ────────────────────────────────────────────────────────────────
+function renderJobs(jobs) {
+  const sorted = [...jobs].sort((a, b) => b.match_pct - a.match_pct).slice(0, 8);
+  destroyChart('jobChart');
+  const ctx = document.getElementById('jobChart').getContext('2d');
+  charts['jobChart'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sorted.map(j => j.title),
+      datasets: [{
+        data: sorted.map(j => j.match_pct),
+        backgroundColor: sorted.map(j => scoreColor(j.match_pct) + 'cc'),
+        borderRadius: 6,
+      }]
+    },
+    options: {
+      ...CHART_DEFAULTS,
+      indexAxis: 'y',
+      scales: {
+        x: { ...CHART_DEFAULTS.scales.x, max: 100 },
+        y: { ...CHART_DEFAULTS.scales.y }
+      },
+      plugins: {
+        ...CHART_DEFAULTS.plugins,
+        tooltip: { callbacks: { label: ctx => `Match: ${ctx.raw}%` } }
+      }
+    }
+  });
 
-// ── PAGE 4 — FEEDBACK ─────────────────────────────────────────────────────
-async function getFeedback() {
-  goToPage(4);
-  document.getElementById('fbTitle').textContent = `📊 Performance Feedback — ${state.role}`;
-  document.getElementById('verdictBanner').innerHTML   = '<div style="color:var(--muted);padding:1rem">⏳ Analyzing your performance...</div>';
-  document.getElementById('scoresGrid').innerHTML  = '';
-  document.getElementById('fbCols').innerHTML      = '';
-  document.getElementById('perQSection').innerHTML = '';
-  document.getElementById('nextSteps').innerHTML   = '';
-
-  try {
-    const res = await fetch(`${API}/feedback`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        role:      state.role,
-        questions: state.questions,
-        answers:   state.answers
-      })
-    });
-    if (!res.ok) throw new Error((await res.json()).detail);
-    const fb = await res.json();
-    renderFeedback(fb);
-  } catch (e) {
-    document.getElementById('verdictBanner').innerHTML =
-      `<div class="alert alert-err show">❌ ${e.message}</div>`;
-  }
-}
-
-function renderFeedback(fb) {
-  // Verdict
-  const verdict = fb.verdict || '';
-  const vc = verdict.includes('Strong') ? '#00e5a0' : verdict.includes('Good') ? '#f5c542' : '#ff5e5e';
-  document.getElementById('verdictBanner').innerHTML = `
-    <div class="verdict" style="background:${vc}10;border:1px solid ${vc}30">
-      <div class="verdict-lbl" style="color:${vc}">VERDICT</div>
-      <div class="verdict-text" style="color:${vc}">${verdict}</div>
-      <div class="verdict-sum">${fb.summary || ''}</div>
-    </div>`;
-
-  // Score cards
-  const scores = [
-    ['Overall Score',        fb.overall_score],
-    ['Communication',        fb.communication_score],
-    ['Technical Knowledge',  fb.technical_score],
-    ['Confidence',           fb.confidence_score],
-  ];
-  document.getElementById('scoresGrid').innerHTML = scores.map(([lbl, val]) => `
-    <div class="metric">
-      <div class="metric-val ${scoreClass(val)}">${val}</div>
-      <div style="font-size:0.5rem;color:#555;font-family:'IBM Plex Mono',monospace">/100</div>
-      <div class="metric-lbl">${lbl}</div>
-    </div>`).join('');
-
-  // Strengths / Weaknesses / Suggestions
-  document.getElementById('fbCols').innerHTML = `
-    <div class="fb-box">
-      <div class="fb-title">✅ Strengths</div>
-      ${(fb.strengths||[]).map(s=>`<div class="fb-item fb-s">${s}</div>`).join('')}
-    </div>
-    <div class="fb-box">
-      <div class="fb-title">❌ Areas to Improve</div>
-      ${(fb.weaknesses||[]).map(w=>`<div class="fb-item fb-w">${w}</div>`).join('')}
-    </div>
-    <div class="fb-box">
-      <div class="fb-title">💡 Suggestions</div>
-      ${(fb.suggestions||[]).map(s=>`<div class="fb-item fb-sg">${s}</div>`).join('')}
-    </div>`;
-
-  // Per question
-  document.getElementById('perQSection').innerHTML = (fb.per_question||[]).map(item => {
-    const qid  = item.question_id - 1;
-    const qObj = state.questions[qid] || {};
-    const ans  = state.answers[qid]   || '';
-    const sc   = item.score || 0;
-    const sc2  = scoreColor(sc);
+  document.getElementById('jobCards').innerHTML = sorted.slice(0, 5).map(j => {
+    const mc    = scoreColor(j.match_pct);
+    const reqH  = (j.required_skills||[]).slice(0,5).map(s=>`<span class="pill pill-blue">${s}</span>`).join('');
+    const misH  = (j.missing_skills ||[]).slice(0,4).map(s=>`<span class="pill pill-red">${s}</span>`).join('');
     return `
-    <details>
-      <summary>Q${item.question_id} — ${(qObj.question||'').slice(0,65)}...&nbsp;&nbsp;<span style="color:${sc2};font-family:'IBM Plex Mono',monospace">[${sc}/100]</span></summary>
-      <div class="detail-inner">
-        <div style="font-size:0.68rem;color:#555;font-family:'IBM Plex Mono',monospace;margin-bottom:0.3rem">THE QUESTION</div>
-        <div style="font-size:0.88rem;font-weight:600;margin-bottom:0.75rem">${qObj.question||''}</div>
-        <div style="font-size:0.68rem;color:#555;font-family:'IBM Plex Mono',monospace;margin-bottom:0.3rem">YOUR ANSWER</div>
-        <div class="ans-box">${ans}</div>
-        <div style="font-size:0.68rem;color:#555;font-family:'IBM Plex Mono',monospace;margin-bottom:0.3rem">FEEDBACK</div>
-        <div style="font-size:0.88rem;margin-bottom:0.75rem">${item.comment||''}</div>
-        <div class="ideal">💡 Ideal answer would include: ${item.ideal_answer_hint||''}</div>
+    <div class="job-card">
+      <div class="job-header">
+        <div class="job-title">${j.title}</div>
+        <div class="job-match" style="color:${mc}">${j.match_pct}%</div>
       </div>
-    </details>`;
+      <div class="job-salary">💰 $${j.avg_salary_usd || 'N/A'}</div>
+      <div class="job-section-label">Required Skills</div>
+      <div class="pill-row" style="margin-bottom:0.5rem">${reqH}</div>
+      ${misH ? `<div class="job-section-label">Missing</div><div class="pill-row">${misH}</div>` : ''}
+    </div>`;
   }).join('');
-
-  // Next steps
-  document.getElementById('nextSteps').innerHTML = (fb.next_steps||[]).map((s,i) => `
-    <div class="next-item">
-      <span class="next-num">${String(i+1).padStart(2,'0')}</span>
-      <span style="font-size:0.88rem">${s}</span>
-    </div>`).join('');
-
-  // Raw JSON
-  document.getElementById('rawJson').textContent = JSON.stringify(fb, null, 2);
 }
 
-// ── RESET ─────────────────────────────────────────────────────────────────
-function resetAll() {
-  state = { role:'', experience:'', focus:[], questions:[], answers:[], chatHistory:[], chatLog:[], currentIdx:0 };
-  document.getElementById('role').value = '';
-  document.querySelectorAll('#focusTags .tag').forEach(t => t.classList.remove('on'));
-  document.getElementById('chatLog').innerHTML = '';
-  goToPage(1);
+// ─ 5. Salary ─────────────────────────────────────────────────────────────
+function renderSalary(salary, jobs) {
+  document.getElementById('salSummary').textContent   = '💡 ' + (salary.market_summary || '');
+  document.getElementById('salCurrent').textContent   = salary.current_estimated_range || 'N/A';
+  document.getElementById('salPotential').textContent = salary.potential_range_with_upskilling || 'N/A';
+
+  // Salary by role chart
+  const byRole = salary.by_role || [];
+  if (byRole.length) {
+    const parseNum = s => parseInt((s||'0').replace(/\D/g,'')) || 0;
+    destroyChart('salaryChart');
+    const ctx = document.getElementById('salaryChart').getContext('2d');
+    charts['salaryChart'] = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: byRole.map(r => r.role),
+        datasets: [
+          { label: 'Min',  data: byRole.map(r => parseNum(r.min)), backgroundColor: '#4f9eff88', borderRadius: 4 },
+          { label: 'Avg',  data: byRole.map(r => parseNum(r.avg)), backgroundColor: '#f5c54288', borderRadius: 4 },
+          { label: 'Max',  data: byRole.map(r => parseNum(r.max)), backgroundColor: '#00e5a088', borderRadius: 4 },
+        ]
+      },
+      options: {
+        ...CHART_DEFAULTS,
+        plugins: { legend: { display: true, labels: { color: '#888', font: { family: 'IBM Plex Mono', size: 11 } } } },
+      }
+    });
+
+    // Table
+    document.getElementById('salBody').innerHTML = byRole.map(r => `
+      <tr>
+        <td style="font-weight:600">${r.role}</td>
+        <td style="color:var(--blue)">${r.min}</td>
+        <td style="color:var(--yellow)">${r.avg}</td>
+        <td style="color:var(--green)">${r.max}</td>
+      </tr>`).join('');
+  }
+}
+
+// ─ 6. Learning Path ───────────────────────────────────────────────────────
+function renderLearning(learning) {
+  const priorityColor = p => p === 'high' ? '#00e5a0' : p === 'medium' ? '#f5c542' : '#888';
+  document.getElementById('learnGrid').innerHTML = learning.map(item => {
+    const pc = priorityColor(item.priority);
+    return `
+    <div class="learn-card">
+      <div class="learn-header">
+        <div class="learn-skill" style="color:${pc}">${(item.skill||'').toUpperCase()}</div>
+        <span class="learn-badge" style="color:${pc};border-color:${pc}40;background:${pc}20">${(item.priority||'').toUpperCase()}</span>
+      </div>
+      <div class="learn-resource">📚 ${item.resource || ''}</div>
+      <div class="learn-meta">
+        <span>⏱ ${item.estimated_time || ''}</span>
+        <span class="learn-salary">💰 ${item.salary_impact || ''}</span>
+      </div>
+    </div>`;
+  }).join('');
 }
 </script>
 </body>

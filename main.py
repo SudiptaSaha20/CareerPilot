@@ -1,137 +1,211 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+import os
+import json
+import logging
+import io
+
+from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from fastapi.responses import HTMLResponse
 from dotenv import load_dotenv
 from pypdf import PdfReader
-import os
+from google import genai
 
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.prompts import PromptTemplate
-
-# -----------------------
-# Load environment
-# -----------------------
 load_dotenv()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-app = FastAPI(title="AI Resume Analyzer API")
+app = FastAPI(title="Market Trend Analyzer API", version="1.0.0")
 
-# Enable CORS (for frontend connection)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Change in production
-    allow_credentials=True,
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# -----------------------
-# Initialize Gemini
-# -----------------------
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    temperature=0.4,
-    google_api_key=os.getenv("GOOGLE_API_KEY")
-)
+# ── Init Gemini (new SDK) ─────────────────────────────────────────────────────
+api_key = os.getenv("GOOGLE_API_KEY")
+if not api_key:
+    raise RuntimeError("GOOGLE_API_KEY not found in .env file.")
 
-# -----------------------
-# Request Models
-# -----------------------
-class JobDescriptionRequest(BaseModel):
-    job_description: str
+client = genai.Client(api_key=api_key)
+GEMINI_MODEL = "gemini-2.5-flash"
 
-class AnswerRequest(BaseModel):
-    answer: str
 
-# -----------------------
-# Helper Function
-# -----------------------
-def extract_text_from_pdf(file_path):
-    reader = PdfReader(file_path)
-    text = ""
-    for page in reader.pages:
-        text += page.extract_text()
-    return text
+# ── Helpers ───────────────────────────────────────────────────────────────────
 
-# ==========================================================
-# 1️⃣ Generate Interview Questions API
-# ==========================================================
-@app.post("/generate-questions")
-async def generate_questions(data: JobDescriptionRequest):
+def gemini(prompt: str) -> str:
+    response = client.models.generate_content(model=GEMINI_MODEL, contents=prompt)
+    return response.text.strip()
 
-    interview_template = PromptTemplate(
-        input_variables=["jd"],
-        template="""
-Based on the following job description:
 
-{jd}
+def extract_text_from_pdf(file_bytes: bytes) -> str:
+    reader = PdfReader(io.BytesIO(file_bytes))
+    return "".join(page.extract_text() or "" for page in reader.pages).strip()
 
-Generate:
-1. 5 Technical Interview Questions (only questions)
-2. 3 HR Questions (only questions)
-3. 3 Scenario-based Questions (only questions)
-"""
+
+def extract_skills(resume_text: str) -> list:
+    prompt = (
+        "Extract all specific technical skills, tools, programming languages, "
+        "frameworks and technologies from this resume.\n"
+        "Be specific — return 'python' not 'programming'.\n"
+        "Return ONLY valid JSON: {\"skills\": [\"python\", \"sql\", \"react\"]}\n"
+        "No broad categories, no markdown fences.\n\n"
+        f"Resume:\n{resume_text[:8000]}"
     )
+    text    = gemini(prompt)
+    cleaned = text.replace("```json", "").replace("```", "").strip()
+    try:
+        return json.loads(cleaned).get("skills", [])
+    except (json.JSONDecodeError, KeyError):
+        return []
 
-    final_prompt = interview_template.format(jd=data.job_description)
-    result = llm.invoke(final_prompt)
 
-    return {
-        "status": "success",
-        "questions": result.content
-    }
+def analyze_market(resume_skills: list) -> dict:
+    skills_str = ", ".join(resume_skills)
+    prompt = f"""
+You are a senior job market analyst with deep knowledge of current tech hiring trends (2024-2025).
 
-# ==========================================================
-# 2️⃣ Evaluate Candidate Answer API
-# ==========================================================
-@app.post("/evaluate-answer")
-async def evaluate_answer(data: AnswerRequest):
+The candidate has these skills from their resume:
+{skills_str}
 
-    feedback_prompt = f"""
-You are a technical interviewer.
+Perform a complete market analysis and return ONLY valid JSON (no markdown, no extra text):
 
-Evaluate the candidate answer below.
+{{
+  "skill_demand": [
+    {{
+      "skill": "python",
+      "demand_score": 95,
+      "trend": "rising",
+      "level": "high",
+      "market_comment": "one line insight about this skill's market value"
+    }}
+  ],
 
-Give:
-1. Score out of 10
-2. Strengths
-3. Improvements
-4. Better sample answer
+  "trending_skills": [
+    {{
+      "skill": "skill name",
+      "demand_score": 90,
+      "why_trending": "brief reason"
+    }}
+  ],
 
-Candidate Answer:
-{data.answer}
+  "skill_gaps": [
+    {{
+      "skill": "missing skill name",
+      "demand_score": 85,
+      "why_needed": "brief reason"
+    }}
+  ],
+
+  "job_matches": [
+    {{
+      "title": "Job Title",
+      "match_pct": 82,
+      "required_skills": ["skill1", "skill2", "skill3"],
+      "missing_skills": ["skill4"],
+      "avg_salary_usd": "120000-150000"
+    }}
+  ],
+
+  "salary_insights": {{
+    "current_estimated_range": "$X - $Y",
+    "potential_range_with_upskilling": "$A - $B",
+    "currency": "USD",
+    "market_summary": "2-3 sentence salary analysis",
+    "by_role": [
+      {{
+        "role": "role name",
+        "min": "$X",
+        "avg": "$Y",
+        "max": "$Z"
+      }}
+    ]
+  }},
+
+  "learning_path": [
+    {{
+      "skill": "skill to learn",
+      "priority": "high",
+      "estimated_time": "4 weeks",
+      "salary_impact": "+$10,000/yr",
+      "resource": "YouTube channel or course name"
+    }}
+  ],
+
+  "market_summary": "3-4 sentence overall assessment of the candidate's market position"
+}}
+
+Rules:
+- demand_score: 0-100 based on real 2024-2025 job market data
+- trend: one of rising / stable / declining
+- level: one of high / medium / low
+- match_pct: realistic percentage based on skill overlap
+- List top 8 job matches
+- List top 8 trending skills in current market
+- List top 6 skill gaps most impactful for career growth
+- List top 6 learning path items ordered by priority
+- salary_insights.by_role: include top 5 matched roles
+- Be realistic and data-driven, not overly optimistic
 """
+    text    = gemini(prompt)
+    cleaned = text.replace("```json", "").replace("```", "").strip()
+    try:
+        return json.loads(cleaned)
+    except (json.JSONDecodeError, KeyError) as e:
+        logger.warning("Market analysis parse error: %s", e)
+        return {}
 
-    result = llm.invoke(feedback_prompt)
 
-    return {
-        "status": "success",
-        "feedback": result.content
+# ── Routes ────────────────────────────────────────────────────────────────────
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    with open("index.html") as f:
+        return f.read()
+
+
+@app.post("/analyze")
+async def analyze(resume: UploadFile = File(...)):
+    """
+    Upload a resume PDF and get full market analysis.
+
+    Returns:
+    {
+        "skills": [...],
+        "skill_demand": [...],
+        "trending_skills": [...],
+        "skill_gaps": [...],
+        "job_matches": [...],
+        "salary_insights": {...},
+        "learning_path": [...],
+        "market_summary": "..."
     }
+    """
+    if resume.content_type != "application/pdf":
+        raise HTTPException(status_code=400, detail="Only PDF files are accepted.")
 
-# ==========================================================
-# 3️⃣ Upload Resume API
-# ==========================================================
-@app.post("/upload-resume")
-async def upload_resume(file: UploadFile = File(...)):
+    file_bytes = await resume.read()
 
-    if not file.filename.endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Only PDF allowed")
+    # Step 1 — Extract text
+    resume_text = extract_text_from_pdf(file_bytes)
+    if not resume_text:
+        raise HTTPException(status_code=400, detail="Could not extract text from the PDF.")
 
-    file_path = f"temp_{file.filename}"
+    # Step 2 — Extract skills
+    skills = extract_skills(resume_text)
+    if not skills:
+        raise HTTPException(status_code=422, detail="Could not extract skills from the resume.")
 
-    with open(file_path, "wb") as f:
-        f.write(await file.read())
+    # Step 3 — Full market analysis
+    data = analyze_market(skills)
+    if not data:
+        raise HTTPException(status_code=500, detail="Market analysis failed. Please try again.")
 
-    extracted_text = extract_text_from_pdf(file_path)
-
-    return {
-        "status": "success",
-        "resume_text": extracted_text[:2000]  # limiting size
-    }
-
-# ==========================================================
-# Health Check
-# ==========================================================
-@app.get("/")
-def root():
-    return {"message": "AI Resume Analyzer Backend Running 🚀"}
+    data["skills"] = skills
+    return data
