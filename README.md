@@ -28,7 +28,7 @@ Most job seekers:
 
 - Don’t know how competitive their profile truly is
 
-# CareerPilot solves this by combining:
+## CareerPilot solves this by combining:
 
 - AI-driven resume analysis
 
