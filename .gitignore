@@ -31,8 +31,7 @@ next-env.d.ts
 
 .venv/
 .env
-README.md/
-marketanalyszer.py/
-interviewbot.py/
-README.md/
-frontend/
+__pycache__/
+LICENSE
+README.md
+main.py
