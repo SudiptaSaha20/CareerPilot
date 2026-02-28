@@ -4,15 +4,15 @@ CareerPilot is an end-to-end, AI-driven career optimization platform that transf
 
 Instead of blindly applying to jobs, CareerPilot:
 
-Analyzes your resume
+- Analyzes your resume
 
-Identifies skill gaps
+- Identifies skill gaps
 
-Simulates real interview scenarios
+- Simulates real interview scenarios
 
-Evaluates market demand
+- Evaluates market demand
 
-Generates a personalized career roadmap
+- Generates a personalized career roadmap
 
 All powered by intelligent analytics.
 
@@ -20,73 +20,73 @@ All powered by intelligent analytics.
 
 Most job seekers:
 
-Apply without understanding market demand
+- Apply without understanding market demand
 
-Lack clarity about their skill gaps
+- Lack clarity about their skill gaps
 
-Fail interviews due to poor preparation
+- Fail interviews due to poor preparation
 
-Don’t know how competitive their profile truly is
+- Don’t know how competitive their profile truly is
 
 CareerPilot solves this by combining:
 
-AI-driven resume analysis
+- AI-driven resume analysis
 
-Market intelligence
+- Market intelligence
 
-Structured interview simulation
+- Structured interview simulation
 
-Data-backed performance insights
+- Data-backed performance insights
 
 All in one unified platform.
 
 🧠 Core Features
 1️⃣ Resume Analyzer
 
-Transforms raw resumes into measurable insights.
+- Transforms raw resumes into measurable insights.
 
-Resume parsing (PDF / DOCX)
+- Resume parsing (PDF / DOCX)
 
-Skill extraction using NLP
+- Skill extraction using NLP
 
-Benchmark comparison with industry standards
+- Benchmark comparison with industry standards
 
-Skill gap identification
+- Skill gap identification
 
-AI-generated improvement scoring
+- AI-generated improvement scoring
 
 2️⃣ AI Interview Guide
 
-Simulates realistic interview environments.
+- Simulates realistic interview environments.
 
-Role-based question generation
+- Role-based question generation
 
-AI-powered chatbot simulation
+- AI-powered chatbot simulation
 
-Mock interview engine
+- Mock interview engine
 
-Performance evaluation with structured scoring
+- Performance evaluation with structured scoring
 
 3️⃣ Market Analyzer
 
-Aligns your skills with real-world demand.
+- Aligns your skills with real-world demand.
 
-Skill vs market demand analysis
+- Skill vs market demand analysis
 
-Trending technology detection
+- Trending technology detection
 
-Suggested job roles
+- Suggested job roles
 
-Salary insights visualization
+- Salary insights visualization
 
 4️⃣ Career Dashboard
 
-Your centralized career command center.
+- Your centralized career command center.
 
-Unified career analytics
+- Unified career analytics
 
-Progress tracking
+- Progress tracking
 
-Historical performance storage
+- Historical performance storage
 
-Downloadable personalized PDF reports
+- Downloadable personalized PDF reports
