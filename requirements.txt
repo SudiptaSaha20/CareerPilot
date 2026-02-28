@@ -10,3 +10,5 @@ pypdf
 faiss-cpu 
 tiktoken
 numpy
+uvicorn
+fastapi
