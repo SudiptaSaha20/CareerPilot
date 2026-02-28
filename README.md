@@ -1,63 +1,92 @@
-🚀 **CareerPilot**
+🚀 CareerPilot
 
-CareerPilot is an end-to-end AI-driven career optimization platform that transforms resumes into actionable career strategies.
+CareerPilot is an end-to-end, AI-driven career optimization platform that transforms resumes into actionable, data-backed career strategies.
 
-Instead of blindly applying to jobs, CareerPilot analyzes your resume, identifies skill gaps, simulates interviews, evaluates market demand, and generates a personalized career roadmap backed by data.
+Instead of blindly applying to jobs, CareerPilot:
 
-📌 **Problem Statement**
+Analyzes your resume
+
+Identifies skill gaps
+
+Simulates real interview scenarios
+
+Evaluates market demand
+
+Generates a personalized career roadmap
+
+All powered by intelligent analytics.
+
+📌 Problem Statement
 
 Most job seekers:
 
-   Apply without understanding market demand
-   
-   Lack clarity on skill gaps
-   
-   Fail interviews due to poor preparation
-   
-   Don’t know how competitive their profile is
+Apply without understanding market demand
 
-CareerPilot solves this by combining AI analysis, market intelligence, and structured feedback into one unified platform.
+Lack clarity about their skill gaps
 
-🧠 **Core Features**
+Fail interviews due to poor preparation
 
-1️⃣ _Resume Analyzer_
+Don’t know how competitive their profile truly is
 
-   Resume parsing (PDF/DOCX)
+CareerPilot solves this by combining:
 
-   Skill extraction using NLP
-   
-   Comparison with industry benchmarks
-   
-   Skill gap identification
-   
-   AI-generated improvement score
+AI-driven resume analysis
 
-2️⃣ _AI Interview Guide_
+Market intelligence
 
-   Role-based question generation
-   
-   AI-powered chatbot simulation
-   
-   Mock interview engine
-   
-   Performance feedback with scoring
+Structured interview simulation
 
-3️⃣ _Market Analyzer_
+Data-backed performance insights
 
-   Skill vs market demand analysis
+All in one unified platform.
 
-   Trending technologies detection
-   
-   Suggested job roles
-   
-   Salary insights visualization
+🧠 Core Features
+1️⃣ Resume Analyzer
 
-4️⃣ _Career Dashboard_
+Transforms raw resumes into measurable insights.
 
-   Centralized career analytics
-   
-   Progress tracking
-   
-   Historical analysis storage
-   
-   Downloadable personalized PDF reports
+Resume parsing (PDF / DOCX)
+
+Skill extraction using NLP
+
+Benchmark comparison with industry standards
+
+Skill gap identification
+
+AI-generated improvement scoring
+
+2️⃣ AI Interview Guide
+
+Simulates realistic interview environments.
+
+Role-based question generation
+
+AI-powered chatbot simulation
+
+Mock interview engine
+
+Performance evaluation with structured scoring
+
+3️⃣ Market Analyzer
+
+Aligns your skills with real-world demand.
+
+Skill vs market demand analysis
+
+Trending technology detection
+
+Suggested job roles
+
+Salary insights visualization
+
+4️⃣ Career Dashboard
+
+Your centralized career command center.
+
+Unified career analytics
+
+Progress tracking
+
+Historical performance storage
+
+Downloadable personalized PDF reports
