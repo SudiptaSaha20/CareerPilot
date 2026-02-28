@@ -1,13 +1,5 @@
-streamlit 
-langchain 
-langchain-core 
-langchain-google-genai 
-langchain-community 
-google-generativeai 
-python-dotenv 
-pypdf 
-faiss-cpu 
-tiktoken
-numpy
-uvicorn
 fastapi
+uvicorn
+google-genai
+python-dotenv
+pypdf

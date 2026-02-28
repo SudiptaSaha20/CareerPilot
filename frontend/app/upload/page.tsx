@@ -6,9 +6,11 @@ import { Upload, FileText, CheckCircle, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useResume } from "@/context";
 
 export default function UploadPage() {
   const router = useRouter();
+  const { setResumeFile } = useResume();
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [progress, setProgress] = useState(0);
@@ -25,6 +27,7 @@ export default function UploadPage() {
   const handleFile = useCallback(
     (f: File) => {
       setFile(f);
+      setResumeFile(f); // ← persist into global context
       setStage("uploading");
       let p = 0;
       const uploadTimer = setInterval(() => {
