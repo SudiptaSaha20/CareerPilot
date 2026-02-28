@@ -1,5 +1,5 @@
-**🚀 CareerPilot
-**
+#🚀 CareerPilot
+
 CareerPilot is an end-to-end, AI-driven career optimization platform that transforms resumes into actionable, data-backed career strategies.
 
 Instead of blindly applying to jobs, CareerPilot:
@@ -16,8 +16,8 @@ Instead of blindly applying to jobs, CareerPilot:
 
 All powered by intelligent analytics.
 
-**📌 Problem Statement
-**
+#📌 Problem Statement
+
 Most job seekers:
 
 - Apply without understanding market demand
@@ -40,10 +40,10 @@ CareerPilot solves this by combining:
 
 All in one unified platform.
 
-**🧠 Core Features
-**
-**1️⃣ Resume Analyzer
-**
+#🧠 Core Features
+
+##1️⃣ Resume Analyzer
+
 - Transforms raw resumes into measurable insights.
 
 - Resume parsing (PDF / DOCX)
@@ -56,8 +56,8 @@ All in one unified platform.
 
 - AI-generated improvement scoring
 
-**2️⃣ AI Interview Guide
-**
+##2️⃣ AI Interview Guide
+
 - Simulates realistic interview environments.
 
 - Role-based question generation
@@ -68,8 +68,8 @@ All in one unified platform.
 
 - Performance evaluation with structured scoring
 
-**3️⃣ Market Analyzer
-**
+##3️⃣ Market Analyzer
+
 - Aligns your skills with real-world demand.
 
 - Skill vs market demand analysis
@@ -80,8 +80,8 @@ All in one unified platform.
 
 - Salary insights visualization
 
-**4️⃣ Career Dashboard
-**
+##4️⃣ Career Dashboard
+
 - Your centralized career command center.
 
 - Unified career analytics
