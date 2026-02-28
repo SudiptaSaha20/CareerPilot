@@ -1,8 +1,0 @@
-pydantic
-pdfplumber
-python-docx
-spacy
-sentence-transformers
-scikit-learn
-numpy
-openai
