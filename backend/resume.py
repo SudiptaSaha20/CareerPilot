@@ -35,9 +35,9 @@ app.add_middleware(
 )
 
 # ── Init Gemini ───────────────────────────────────────────────────────────────
-api_key = os.getenv("GOOGLE_API_KEY")
+api_key = os.getenv("RESUME_API_KEY")
 if not api_key:
-    raise RuntimeError("GOOGLE_API_KEY not found in .env file.")
+    raise RuntimeError("RESUME_API_KEY not found in .env file.")
 
 client      = genai.Client(api_key=api_key)
 GEMINI_MODEL = "gemini-2.5-flash"
