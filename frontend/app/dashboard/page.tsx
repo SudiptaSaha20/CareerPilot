@@ -25,8 +25,19 @@ import {
 
 export default function DashboardOverview() {
   const [loading, setLoading] = useState(true);
+  const [analysis, setAnalysis] = useState<{
+    score: number;
+    matchPercentage: number;
+    improvementScore: number;
+  } | null>(null);
 
   useEffect(() => {
+    const stored = sessionStorage.getItem("resumeAnalysis");
+    if (stored) {
+      try {
+        setAnalysis(JSON.parse(stored));
+      } catch { /* use mock */ }
+    }
     simulateDelay(1200).then(() => setLoading(false));
   }, []);
 
@@ -45,12 +56,12 @@ export default function DashboardOverview() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <DashboardCard title="Resume Score" icon={FileText} subtitle="+5 from last update">
           <div className="mt-3">
-            <AnimatedCounter value={mockDashboardStats.resumeScore} suffix="%" className="text-3xl font-bold text-foreground" />
+            <AnimatedCounter value={analysis?.score ?? mockDashboardStats.resumeScore} suffix="%" className="text-3xl font-bold text-foreground" />
           </div>
         </DashboardCard>
         <DashboardCard title="Skill Match" icon={Target} subtitle="Based on target roles">
           <div className="mt-3">
-            <AnimatedCounter value={mockDashboardStats.skillMatch} suffix="%" className="text-3xl font-bold text-foreground" />
+            <AnimatedCounter value={analysis?.matchPercentage ?? mockDashboardStats.skillMatch} suffix="%" className="text-3xl font-bold text-foreground" />
           </div>
         </DashboardCard>
         <DashboardCard title="Interview Ready" icon={Zap} subtitle="Mock interview score">
@@ -67,7 +78,7 @@ export default function DashboardOverview() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass-card flex flex-col items-center justify-center p-8">
-          <ProgressRing value={78} size={160} strokeWidth={10} label="Overall" />
+          <ProgressRing value={analysis?.score ?? 78} size={160} strokeWidth={10} label="Overall" />
           <p className="mt-4 text-sm text-muted-foreground">Resume Score</p>
         </motion.div>
 

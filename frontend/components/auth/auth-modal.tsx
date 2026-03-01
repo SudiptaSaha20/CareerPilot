@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { OtpInput } from "./otp-input";
-import { Zap, Eye, EyeOff, Loader2, ArrowLeft, Mail } from "lucide-react";
+import { Zap, Eye, EyeOff, Loader2, ArrowLeft, Mail, Check } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -63,6 +63,7 @@ export function AuthModal({ open, onOpenChange, defaultMode = "login" }: AuthMod
   const [mode, setMode] = useState<Mode>(defaultMode);
   const [loading, setLoading] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const [otpEmail, setOtpEmail] = useState("");
 
   // Form state
@@ -90,6 +91,7 @@ export function AuthModal({ open, onOpenChange, defaultMode = "login" }: AuthMod
         email: form.email,
         password: form.password,
         redirect: false,
+        ...(rememberMe && { rememberMe: "true" }),
       });
 
       if (result?.error) {
@@ -281,12 +283,22 @@ export function AuthModal({ open, onOpenChange, defaultMode = "login" }: AuthMod
                       </button>
                     </div>
                   </div>
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => setMode("forgot")}
-                      className="text-xs text-primary hover:underline"
-                    >
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <div
+                        onClick={() => setRememberMe(!rememberMe)}
+                        className={cn(
+                          "h-4 w-4 rounded border transition-all cursor-pointer flex items-center justify-center",
+                          rememberMe
+                            ? "bg-primary border-primary"
+                            : "border-glass-border bg-secondary group-hover:border-primary/50"
+                        )}
+                      >
+                        {rememberMe && <Check className="h-2.5 w-2.5 text-primary-foreground" />}
+                      </div>
+                      <span className="text-xs text-muted-foreground select-none">Remember me</span>
+                    </label>
+                    <button type="button" onClick={() => setMode("forgot")} className="text-xs text-primary hover:underline">
                       Forgot password?
                     </button>
                   </div>

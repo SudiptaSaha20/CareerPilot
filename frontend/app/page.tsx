@@ -15,7 +15,7 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { AuthModal } from "@/components/auth/auth-modal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
@@ -74,6 +74,12 @@ export default function LandingPage() {
   const [authMode, setAuthMode] = useState<"login" | "signup">("login");
   const { data: session } = useSession();
   const router = useRouter();
+
+  useEffect(() => {
+    if (session) {
+      router.replace("/upload");
+    }
+  }, [session, router]);
 
   const handleGetStarted = () => {
     if (session) {
@@ -148,16 +154,20 @@ export default function LandingPage() {
                 className="gap-2 text-base animate-pulse-glow"
                 onClick={handleGetStarted}
               >
-                Upload Resume <ArrowRight className="h-4 w-4" />
+                {session ? "Go to Dashboard" : "Upload Resume"} <ArrowRight className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="lg" className="text-base" onClick={handleSignIn}>
-                Sign In
-              </Button>
-              <Link href="/dashboard">
-                <Button variant="ghost" size="lg" className="text-base text-muted-foreground hover:text-foreground">
-                  Try Demo →
+              {!session && (
+                <Button variant="outline" size="lg" className="text-base" onClick={handleSignIn}>
+                  Sign In
                 </Button>
-              </Link>
+              )}
+              {!session && (
+                <Link href="/dashboard">
+                  <Button variant="ghost" size="lg" className="text-base text-muted-foreground hover:text-foreground">
+                    Try Demo →
+                  </Button>
+                </Link>
+              )}
             </div>
           </motion.div>
 
