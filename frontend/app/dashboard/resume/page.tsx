@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FileText, CheckCircle, Loader2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -93,8 +93,6 @@ interface CourseItem {
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-
-const API = process.env.NEXT_PUBLIC_RESUME_API_URL || "http://localhost:8000";
 
 type Mode = "candidate" | "recruiter";
 
@@ -357,8 +355,8 @@ function SkillRoadmapCard({ sk, idx }: { sk: SkillRoadmap; idx: number }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function ResumeAnalyzerPage() {
-  // ── Pull resume from global context (set on /upload) ──────────────────────
-  const { resumeFile } = useResume();
+  // ── Pull resume file + JD from context (set during /upload) ─────────────
+  const { resumeFile, jobDescription: contextJd } = useResume();
 
   const [mode, setMode] = useState<Mode>("candidate");
   const [jd, setJd] = useState("");
@@ -367,6 +365,21 @@ export default function ResumeAnalyzerPage() {
   const [candidateResult, setCandidateResult] = useState<CandidateResult | null>(null);
   const [recruiterResult, setRecruiterResult] = useState<RecruiterResult | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
+
+  // Pre-fill JD from context (upload page stored it), or fall back to DB
+  useEffect(() => {
+    if (contextJd) {
+      setJd(contextJd);
+      return;
+    }
+    // Context is empty (e.g. page refresh) — load JD from DB
+    fetch("/api/resume/latest")
+      .then(r => r.json())
+      .then(data => {
+        if (data.resume?.jobDescription) setJd(data.resume.jobDescription);
+      })
+      .catch(() => {});
+  }, [contextJd]);
 
   const runAnalysis = async () => {
     if (!resumeFile) { toast.error("No resume found — please upload one on the Upload page"); return; }
@@ -381,12 +394,16 @@ export default function ResumeAnalyzerPage() {
     form.append("resume", resumeFile);
     form.append("job_description", jd);
 
-    const endpoint = mode === "candidate" ? "/ats/candidate" : "/ats/recruiter";
+    // candidate → /api/resume/analyze (saves to DB)
+    // recruiter → Python directly (no DB save needed for recruiter view)
+    const endpoint = mode === "candidate"
+      ? "/api/resume/analyze"
+      : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/ats/recruiter`;
 
     try {
-      const res = await fetch(API + endpoint, { method: "POST", body: form });
+      const res = await fetch(endpoint, { method: "POST", body: form });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Analysis failed");
+      if (!res.ok) throw new Error(data.detail || data.error || "Analysis failed");
 
       if (mode === "candidate") setCandidateResult(data as CandidateResult);
       else setRecruiterResult(data as RecruiterResult);

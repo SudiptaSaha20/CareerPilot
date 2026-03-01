@@ -83,18 +83,43 @@ model OtpCode {
   createdAt DateTime @default(now())
 }
 
+// Stores the result of /ats/candidate — one row per upload
 model Resume {
-  id               String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId           String   @db.ObjectId
-  filename         String
-  score            Int?
-  improvementScore Int?
-  matchPercentage  Int?
-  skills           String[]
-  skillGaps        String[]
-  status           String   @default("complete")
-  analysis         Json?
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String   @db.ObjectId
+  filename       String
+  jobDescription String?
+
+  // Top-level scores from /ats/candidate
+  semanticScore  Float?
+  atsScore       Float?
+  keywordDensity Float?
+
+  // Skill arrays
+  resumeSkills   String[]
+  jdSkills       String[]
+  missingSkills  String[]
+
+  // Full raw JSON blob (includes roadmap, debug, warnings)
+  analysis       Json?
+
+  status         String   @default("complete")
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// Stores the result of /market/analyze — one row per analysis
+model MarketAnalysis {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String   @db.ObjectId
+  resumeFilename String?
+  skills         String[]  // skills detected from resume
+
+  // Full raw JSON blob from /market/analyze
+  analysis       Json?
+
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
 }

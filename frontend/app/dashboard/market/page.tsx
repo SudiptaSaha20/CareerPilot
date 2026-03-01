@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
@@ -37,8 +37,6 @@ interface AnalysisResult {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-const API = "http://localhost:8000";
 
 function scoreColor(v: number) {
   return v >= 75 ? "text-success" : v >= 50 ? "text-warning" : "text-destructive";
@@ -236,6 +234,14 @@ export default function MarketAnalyzer() {
   const [loading, setLoading] = useState(false);
   const [data, setData]       = useState<AnalysisResult | null>(null);
 
+  // On mount: load last saved market analysis from DB (works after page refresh)
+  useEffect(() => {
+    fetch("/api/resume/market/analyze")
+      .then(r => r.json())
+      .then(res => { if (res.analysis) setData(res.analysis as AnalysisResult); })
+      .catch(() => {});
+  }, []);
+
   async function runAnalysis() {
     if (!resumeFile) return;
     setError(""); setData(null); setLoading(true);
@@ -243,9 +249,10 @@ export default function MarketAnalyzer() {
     const form = new FormData();
     form.append("resume", resumeFile);
     try {
-      const res  = await fetch(`${API}/market/analyze`, { method: "POST", body: form });
+      // Route through Next.js API so result is saved to MongoDB
+      const res  = await fetch("/api/resume/market/analyze", { method: "POST", body: form });
       const json = await res.json();
-      if (!res.ok) throw new Error(json.detail || "Analysis failed.");
+      if (!res.ok) throw new Error(json.detail || json.error || "Analysis failed.");
       setStatus("");
       setData(json);
     } catch (e: unknown) {
