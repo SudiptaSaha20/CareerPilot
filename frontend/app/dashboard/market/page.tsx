@@ -243,7 +243,7 @@ export default function MarketAnalyzer() {
     const form = new FormData();
     form.append("resume", resumeFile);
     try {
-      const res  = await fetch(`${API}/analyze`, { method: "POST", body: form });
+      const res  = await fetch(`${API}/market/analyze`, { method: "POST", body: form });
       const json = await res.json();
       if (!res.ok) throw new Error(json.detail || "Analysis failed.");
       setStatus("");
