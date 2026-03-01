@@ -34,4 +34,7 @@ next-env.d.ts
 __pycache__/
 LICENSE
 README.md
-main.py
+main3.py/
+main.py/
+index.html
+requirements.txt
