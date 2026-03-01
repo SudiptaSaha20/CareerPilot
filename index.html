@@ -374,9 +374,18 @@ function setScore(valId, barId, value) {
   bar.style.background = scoreColor(value);
 }
 
+function escapeHTML(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function pills(arr, cssClass) {
   if (!arr || !arr.length) return `<span style="color:#444">None</span>`;
-  return arr.map(s => `<span class="pill ${cssClass}">${s}</span>`).join('');
+  return arr.map(s => `<span class="pill ${cssClass}">${escapeHTML(s)}</span>`).join('');
 }
 
 // ── Main Analysis ─────────────────────────────────────────────────────────
@@ -546,7 +555,7 @@ function renderSkillRoadmap(sk, idx) {
       <div style="font-size:0.78rem;color:#888;margin-bottom:0.5rem">${c.what_you_learn||''}</div>
       <div style="display:flex;gap:1rem;align-items:center">
         <span style="font-size:0.72rem;color:var(--muted)">⏱ ${c.duration||''}</span>
-        <a href="${yt}" target="_blank" style="font-size:0.72rem;color:var(--red);text-decoration:none;font-family:'IBM Plex Mono',monospace">🔴 Search on YouTube →</a>
+        <a href="${yt}" target="_blank" rel="noopener noreferrer" style="font-size:0.72rem;color:var(--red);text-decoration:none;font-family:'IBM Plex Mono',monospace">🔴 Search on YouTube →</a>
       </div>
     </div>`;
   };
