@@ -3,6 +3,8 @@ import json
 import logging
 import io
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
@@ -14,7 +16,22 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Market Trend Analyzer API", version="1.0.0")
+GEMINI_MODEL = "gemini-2.5-flash"
+client: genai.Client | None = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global client
+    api_key = os.getenv("GOOGLE_API_KEY")
+    if not api_key:
+        logger.warning("GOOGLE_API_KEY is not set — Gemini endpoints will return 503.")
+    else:
+        client = genai.Client(api_key=api_key)
+    yield
+
+
+app = FastAPI(title="Market Trend Analyzer API", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,18 +40,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Init Gemini (new SDK) ─────────────────────────────────────────────────────
-api_key = os.getenv("GOOGLE_API_KEY")
-if not api_key:
-    raise RuntimeError("GOOGLE_API_KEY not found in .env file.")
-
-client = genai.Client(api_key=api_key)
-GEMINI_MODEL = "gemini-2.5-flash"
-
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 def gemini(prompt: str) -> str:
+    if client is None:
+        raise HTTPException(status_code=503, detail="Gemini API key is not configured.")
     response = client.models.generate_content(model=GEMINI_MODEL, contents=prompt)
     return response.text.strip()
 
