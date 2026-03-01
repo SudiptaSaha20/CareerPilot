@@ -29,12 +29,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.venv/
-.env
 __pycache__/
-LICENSE
-README.md
-main3.py/
-main.py/
-index.html
-requirements.txt
