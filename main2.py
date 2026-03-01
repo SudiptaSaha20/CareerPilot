@@ -36,11 +36,25 @@ app.add_middleware(
 
 # ── Init Gemini ───────────────────────────────────────────────────────────────
 api_key = os.getenv("GOOGLE_API_KEY")
-if not api_key:
-    raise RuntimeError("GOOGLE_API_KEY not found in .env file.")
-
-client      = genai.Client(api_key=api_key)
+client: genai.Client | None = None
 GEMINI_MODEL = "gemini-2.5-flash"
+
+
+@app.on_event("startup")
+async def init_gemini_client() -> None:
+    """
+    Initialize the global Gemini client when the FastAPI app starts.
+    This avoids raising errors at import time while still failing fast
+    if the GOOGLE_API_KEY configuration is missing or invalid.
+    """
+    global client
+
+    key = os.getenv("GOOGLE_API_KEY")
+    if not key:
+        logger.error("GOOGLE_API_KEY not found in .env file.")
+        raise RuntimeError("GOOGLE_API_KEY not found in .env file.")
+
+    client = genai.Client(api_key=key)
 
 
 # ── Stopwords ─────────────────────────────────────────────────────────────────
