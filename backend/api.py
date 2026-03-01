@@ -1,29 +1,3 @@
-"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║                    🚀 UNIFIED AI CAREER PLATFORM API                        ║
-║                                                                              ║
-║  4 Modules merged into one FastAPI app:                                      ║
-║                                                                              ║
-║  1. 💬 CHAT          /chat/                                                  ║
-║     └─ POST /chat/message          → General AI chat with history            ║
-║                                                                              ║
-║  2. 📈 MARKET        /market/                                                ║
-║     └─ POST /market/analyze        → Upload resume → full market analysis    ║
-║                                                                              ║
-║  3. 🚀 ATS           /ats/                                                   ║
-║     ├─ POST /ats/candidate         → ATS scores + skill gap + roadmap        ║
-║     └─ POST /ats/recruiter         → Hiring verdict + scorecard              ║
-║                                                                              ║
-║  4. 🎯 INTERVIEW     /interview/                                             ║
-║     ├─ POST /interview/questions   → Generate 7 interview questions          ║
-║     ├─ POST /interview/chat        → AI interviewer follow-up                ║
-║     └─ POST /interview/feedback    → Full performance feedback               ║
-║                                                                              ║
-║  Swagger UI → http://localhost:8000/docs                                     ║
-║  ReDoc      → http://localhost:8000/redoc                                    ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-"""
-
 import os
 import io
 import json
@@ -42,12 +16,10 @@ from pypdf import PdfReader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from google import genai
 
-# ─────────────────────────────────────────────────────────────────────────────
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ── Separate Gemini keys + clients per module ─────────────────────────────────
 def _load_key(env_var: str) -> str:
     key = os.getenv(env_var)
     if not key:
@@ -57,15 +29,11 @@ def _load_key(env_var: str) -> str:
 GEMINI_MODEL = "gemini-2.5-flash"
 EMBED_MODEL  = "gemini-embedding-001"
 
-# Each module gets its own API key and Gemini client
-chat_client      = genai.Client(api_key=_load_key("CHAT_GEMINI_KEY"))
-market_client    = genai.Client(api_key=_load_key("MARKET_GEMINI_KEY"))
-ats_client       = genai.Client(api_key=_load_key("ATS_GEMINI_KEY"))
-interview_client = genai.Client(api_key=_load_key("INTERVIEW_GEMINI_KEY"))
+chat_client      = genai.Client(api_key=_load_key("CHATBOT_API_KEY"))
+market_client    = genai.Client(api_key=_load_key("MARKET_API_KEY"))
+ats_client       = genai.Client(api_key=_load_key("RESUME_API_KEY"))
+interview_client = genai.Client(api_key=_load_key("INTERVIEW_API_KEY"))
 
-# ─────────────────────────────────────────────────────────────────────────────
-# FASTAPI APP
-# ─────────────────────────────────────────────────────────────────────────────
 app = FastAPI(
     title="🚀 Unified AI Career Platform",
     description="""
@@ -102,9 +70,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ─────────────────────────────────────────────────────────────────────────────
-# STOPWORDS  (shared by ATS module)
-# ─────────────────────────────────────────────────────────────────────────────
 _STOPWORDS = {
     "a","an","the","and","or","but","in","on","at","to","for","of","with",
     "is","are","was","were","be","been","have","has","had","do","does","did",
@@ -118,34 +83,20 @@ _STOPWORDS = {
     "how","what","when","where","who","which","while","per","etc","ie","eg",
 }
 
-
-# ═════════════════════════════════════════════════════════════════════════════
-#  SHARED UTILITIES
-# ═════════════════════════════════════════════════════════════════════════════
-
 def gemini_text(prompt: str, client) -> str:
     """Call Gemini with a specific module client and return the text response."""
     response = client.models.generate_content(model=GEMINI_MODEL, contents=prompt)
     return response.text.strip()
-
 
 def parse_json(raw: str) -> dict | list:
     """Strip markdown fences and parse JSON."""
     cleaned = raw.replace("```json", "").replace("```", "").strip()
     return json.loads(cleaned)
 
-
 def extract_text_from_pdf(file_bytes: bytes) -> str:
     """Extract all text from a PDF file."""
     reader = PdfReader(io.BytesIO(file_bytes))
     return "".join(page.extract_text() or "" for page in reader.pages).strip()
-
-
-# ═════════════════════════════════════════════════════════════════════════════
-#  MODULE 1 — CHAT
-# ═════════════════════════════════════════════════════════════════════════════
-
-# ── Pydantic models ───────────────────────────────────────────────────────────
 
 class ChatMessage(BaseModel):
     role: str = Field(..., description="'user' or 'assistant'", examples=["user"])
@@ -159,8 +110,6 @@ class ChatResponse(BaseModel):
     reply: str = Field(..., description="AI assistant reply")
 
 
-# ── Core logic ────────────────────────────────────────────────────────────────
-
 def build_chat_conversation(message: str, history: list[ChatMessage]) -> str:
     """Build a plain-text conversation string for Gemini."""
     conversation = ""
@@ -169,9 +118,6 @@ def build_chat_conversation(message: str, history: list[ChatMessage]) -> str:
         conversation += f"{role}: {msg.text}\n"
     conversation += f"User: {message}\nAssistant:"
     return conversation
-
-
-# ── Routes ────────────────────────────────────────────────────────────────────
 
 chat_tag = ["💬 Chat"]
 
@@ -202,12 +148,6 @@ async def chat_message(req: ChatRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
-# ═════════════════════════════════════════════════════════════════════════════
-#  MODULE 2 — MARKET TREND ANALYZER
-# ═════════════════════════════════════════════════════════════════════════════
-
-# ── Core logic ────────────────────────────────────────────────────────────────
 
 def market_extract_skills(resume_text: str) -> list[str]:
     """Extract technical skills from resume text."""

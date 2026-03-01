@@ -2,11 +2,13 @@
 
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, FileText, CheckCircle, Loader2, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import { FileText, CheckCircle, Loader2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useResume } from "@/context";
+import Link from "next/link";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -164,23 +166,23 @@ function SkillRoadmapCard({ sk, idx }: { sk: SkillRoadmap; idx: number }) {
     low:      "text-muted-foreground border-border bg-secondary",
   };
   const difficultyColors: Record<string, string> = {
-    easy:       "text-success border-success/30 bg-success/10",
-    moderate:   "text-warning border-warning/30 bg-warning/10",
-    hard:       "text-destructive border-destructive/30 bg-destructive/10",
-    "very hard":"text-destructive border-destructive/30 bg-destructive/10",
+    easy:        "text-success border-success/30 bg-success/10",
+    moderate:    "text-warning border-warning/30 bg-warning/10",
+    hard:        "text-destructive border-destructive/30 bg-destructive/10",
+    "very hard": "text-destructive border-destructive/30 bg-destructive/10",
   };
 
   const tabs = [
-    { key: "dayplan" as const, label: "📅 Day Plan" },
-    { key: "approach" as const, label: "🧭 Approach" },
+    { key: "dayplan"    as const, label: "📅 Day Plan" },
+    { key: "approach"   as const, label: "🧭 Approach" },
     { key: "milestones" as const, label: "🏁 Milestones" },
-    { key: "beginner" as const, label: "🟢 Beginner" },
-    { key: "advanced" as const, label: "🟡🔴 Advanced" },
+    { key: "beginner"   as const, label: "🟢 Beginner" },
+    { key: "advanced"   as const, label: "🟡🔴 Advanced" },
   ];
 
   const phaseStyles: Record<string, { border: string; color: string; icon: string }> = {
-    beginner:     { border: "border-l-success", color: "text-success", icon: "🟢" },
-    intermediate: { border: "border-l-warning", color: "text-warning", icon: "🟡" },
+    beginner:     { border: "border-l-success",     color: "text-success",     icon: "🟢" },
+    intermediate: { border: "border-l-warning",     color: "text-warning",     icon: "🟡" },
     expert:       { border: "border-l-destructive", color: "text-destructive", icon: "🔴" },
   };
 
@@ -211,7 +213,6 @@ function SkillRoadmapCard({ sk, idx }: { sk: SkillRoadmap; idx: number }) {
 
   return (
     <div className="glass-card p-5 space-y-4">
-      {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-3">
         <div>
           <p className="text-base font-bold text-foreground">
@@ -230,7 +231,6 @@ function SkillRoadmapCard({ sk, idx }: { sk: SkillRoadmap; idx: number }) {
         </div>
       </div>
 
-      {/* Timeline bar */}
       <div>
         <div className="flex justify-between text-xs font-mono text-muted-foreground mb-1">
           <span>🟢 Beginner ({te.beginner_days || 0}d)</span>
@@ -245,7 +245,6 @@ function SkillRoadmapCard({ sk, idx }: { sk: SkillRoadmap; idx: number }) {
         <p className="text-xs text-muted-foreground font-mono mt-1">{te.time_note}</p>
       </div>
 
-      {/* Tabs */}
       <div className="flex flex-wrap gap-1.5">
         {tabs.map(t => (
           <button key={t.key} onClick={() => setActiveTab(t.key)}
@@ -258,7 +257,6 @@ function SkillRoadmapCard({ sk, idx }: { sk: SkillRoadmap; idx: number }) {
         ))}
       </div>
 
-      {/* Tab content */}
       <AnimatePresence mode="wait">
         <motion.div key={activeTab} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
 
@@ -359,25 +357,19 @@ function SkillRoadmapCard({ sk, idx }: { sk: SkillRoadmap; idx: number }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function ResumeAnalyzerPage() {
+  // ── Pull resume from global context (set on /upload) ──────────────────────
+  const { resumeFile } = useResume();
+
   const [mode, setMode] = useState<Mode>("candidate");
-  const [file, setFile] = useState<File | null>(null);
   const [jd, setJd] = useState("");
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
   const [candidateResult, setCandidateResult] = useState<CandidateResult | null>(null);
   const [recruiterResult, setRecruiterResult] = useState<RecruiterResult | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [showDebug, setShowDebug] = useState(false);
-  const [showRawJson, setShowRawJson] = useState(false);
   const resultsRef = useRef<HTMLDivElement>(null);
 
-  const handleFile = (f: File) => {
-    if (f.type !== "application/pdf") { toast.error("Only PDF files are accepted"); return; }
-    setFile(f);
-  };
-
   const runAnalysis = async () => {
-    if (!file) { toast.error("Please upload a resume PDF"); return; }
+    if (!resumeFile) { toast.error("No resume found — please upload one on the Upload page"); return; }
     if (!jd.trim()) { toast.error("Please paste a job description"); return; }
 
     setLoading(true);
@@ -386,10 +378,10 @@ export default function ResumeAnalyzerPage() {
     setStatus(mode === "candidate" ? "🧠 Building semantic index and extracting skills..." : "🏢 Running recruiter-grade AI analysis...");
 
     const form = new FormData();
-    form.append("resume", file);
+    form.append("resume", resumeFile);
     form.append("job_description", jd);
 
-    const endpoint = mode === "candidate" ? "/analyze/candidate" : "/analyze/recruiter";
+    const endpoint = mode === "candidate" ? "/ats/candidate" : "/ats/recruiter";
 
     try {
       const res = await fetch(API + endpoint, { method: "POST", body: form });
@@ -411,76 +403,78 @@ export default function ResumeAnalyzerPage() {
 
   const result = candidateResult || recruiterResult;
 
+  // ── No resume yet — prompt upload ─────────────────────────────────────────
+  if (!resumeFile) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="glass-card flex flex-col items-center justify-center gap-5 p-16 text-center"
+      >
+        <div className="rounded-2xl bg-primary/10 p-5">
+          <FileText className="h-10 w-10 text-primary" />
+        </div>
+        <div className="space-y-1.5">
+          <h3 className="text-lg font-semibold text-foreground">No resume uploaded yet</h3>
+          <p className="text-sm text-muted-foreground max-w-xs">
+            Upload your resume once and it will be used for all analyses across the dashboard.
+          </p>
+        </div>
+        <Link href="/upload">
+          <Button size="lg" className="gap-2">
+            <FileText className="h-4 w-4" /> Upload Resume
+          </Button>
+        </Link>
+      </motion.div>
+    );
+  }
+
   return (
     <div className="space-y-6">
 
-      {/* Mode toggle */}
+      {/* ── Mode toggle (label on right removed) ────────────────────────── */}
       <div className="flex items-center gap-2">
-        <button onClick={() => { setMode("candidate"); setCandidateResult(null); setRecruiterResult(null); }}
+        <button
+          onClick={() => { setMode("candidate"); setCandidateResult(null); setRecruiterResult(null); }}
           className={cn("rounded-xl px-4 py-2 text-sm font-semibold border transition-all",
-            mode === "candidate" ? "border-primary/50 bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary/30")}>
+            mode === "candidate"
+              ? "border-primary/50 bg-primary/10 text-primary"
+              : "border-border text-muted-foreground hover:border-primary/30")}>
           👤 Candidate Mode
         </button>
-        <button onClick={() => { setMode("recruiter"); setCandidateResult(null); setRecruiterResult(null); }}
+        <button
+          onClick={() => { setMode("recruiter"); setCandidateResult(null); setRecruiterResult(null); }}
           className={cn("rounded-xl px-4 py-2 text-sm font-semibold border transition-all",
-            mode === "recruiter" ? "border-purple-400/50 bg-purple-400/10 text-purple-400" : "border-border text-muted-foreground hover:border-purple-400/30")}>
+            mode === "recruiter"
+              ? "border-purple-400/50 bg-purple-400/10 text-purple-400"
+              : "border-border text-muted-foreground hover:border-purple-400/30")}>
           🏢 Recruiter Mode
         </button>
-        <div className="ml-auto text-xs text-muted-foreground">
-          {mode === "candidate" ? "ATS scores · Skill gaps · Learning roadmap" : "Verdict · Scorecard · Interview questions"}
+
+        {/* Resume pill — shows which file is loaded from /upload */}
+        <div className="ml-auto flex items-center gap-2 rounded-xl border border-success/30 bg-success/5 px-3 py-1.5">
+          <CheckCircle className="h-3.5 w-3.5 text-success shrink-0" />
+          <span className="text-xs font-medium text-success truncate max-w-[200px]">{resumeFile.name}</span>
         </div>
       </div>
 
-      {/* Upload + JD input */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        {/* Resume upload */}
-        <div className="space-y-2">
-          <p className="text-sm font-semibold text-foreground">
-            {mode === "recruiter" ? "📄 Upload Candidate Resume" : "📄 Upload Resume"}
-          </p>
-          <div
-            onDragOver={e => { e.preventDefault(); setIsDragging(true); }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={e => { e.preventDefault(); setIsDragging(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
-            onClick={() => document.getElementById("resume-input")?.click()}
-            className={cn(
-              "glass-card cursor-pointer border-2 border-dashed p-10 text-center transition-colors",
-              isDragging ? "border-primary bg-primary/5" : "border-border hover:border-primary/40",
-              file && "border-success/50 bg-success/5"
-            )}>
-            <input id="resume-input" type="file" accept=".pdf" className="hidden"
-              onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
-            {file ? (
-              <div className="space-y-2">
-                <CheckCircle className="mx-auto h-8 w-8 text-success" />
-                <p className="text-sm font-medium text-success truncate px-4">{file.name}</p>
-                <p className="text-xs text-muted-foreground">{(file.size / 1024).toFixed(1)} KB · Click to change</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
-                <p className="text-sm font-medium text-foreground">Drop PDF here or click to browse</p>
-                <p className="text-xs text-muted-foreground">PDF only</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Job description */}
-        <div className="space-y-2">
-          <p className="text-sm font-semibold text-foreground">📋 Job Description</p>
-          <Textarea
-            value={jd}
-            onChange={e => setJd(e.target.value)}
-            placeholder="Paste the full job description here..."
-            className="bg-secondary border-none resize-none h-[172px] text-sm font-mono focus-visible:ring-primary/50"
-          />
-        </div>
+      {/* ── Job description only ─────────────────────────────────────────── */}
+      <div className="space-y-2">
+        <p className="text-sm font-semibold text-foreground">📋 Job Description</p>
+        <Textarea
+          value={jd}
+          onChange={e => setJd(e.target.value)}
+          placeholder="Paste the full job description here..."
+          className="bg-secondary border-none resize-none h-48 text-sm font-mono focus-visible:ring-primary/50"
+        />
       </div>
 
-      {/* Analyze button */}
-      <Button className={cn("w-full gap-2 text-base", mode === "recruiter" && "bg-purple-500 hover:bg-purple-600")}
-        onClick={runAnalysis} disabled={loading}>
+      {/* ── Analyze button ───────────────────────────────────────────────── */}
+      <Button
+        className={cn("w-full gap-2 text-base", mode === "recruiter" && "bg-purple-500 hover:bg-purple-600")}
+        onClick={runAnalysis}
+        disabled={loading}
+      >
         {loading
           ? <><Loader2 className="h-4 w-4 animate-spin" /> {status || "Analyzing..."}</>
           : mode === "candidate" ? "🔍 Analyze Resume" : "🏢 Run Recruiter Analysis"}
@@ -492,7 +486,6 @@ export default function ResumeAnalyzerPage() {
           <motion.div ref={resultsRef} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             className="space-y-6 pt-2">
 
-            {/* Warnings */}
             {(result.warnings || []).map((w, i) => (
               <div key={i} className="rounded-xl border border-warning/30 bg-warning/5 px-4 py-2.5 text-sm text-warning">
                 ⚠️ {w}
@@ -501,22 +494,20 @@ export default function ResumeAnalyzerPage() {
 
             <div className="border-t border-border" />
 
-            {/* ── CANDIDATE RESULTS ──────────────────────────────────── */}
+            {/* ── CANDIDATE RESULTS ──────────────────────────────────────── */}
             {candidateResult && (
               <div className="space-y-6">
                 <h2 className="text-lg font-bold text-foreground">📊 Results</h2>
 
-                {/* Score cards */}
                 <div className="grid gap-4 grid-cols-3">
                   <ScoreCard label="Semantic Match" value={candidateResult.semantic_score} />
-                  <ScoreCard label="ATS Score" value={candidateResult.ats_score} />
+                  <ScoreCard label="ATS Score"      value={candidateResult.ats_score} />
                   <ScoreCard label="Keyword Density" value={candidateResult.keyword_density} />
                 </div>
 
-                {/* Skills grid */}
                 <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
-                  <SkillCard title="✅ Resume Skills" skills={candidateResult.resume_skills} variant="green" />
-                  <SkillCard title="🎯 JD Skills" skills={candidateResult.jd_skills} variant="blue" />
+                  <SkillCard title="✅ Resume Skills"  skills={candidateResult.resume_skills}  variant="green" />
+                  <SkillCard title="🎯 JD Skills"      skills={candidateResult.jd_skills}      variant="blue" />
                   <div className="glass-card p-4 space-y-3">
                     <h4 className="text-sm font-semibold text-foreground">❌ Missing Skills</h4>
                     <div className="flex flex-wrap gap-1.5">
@@ -536,7 +527,6 @@ export default function ResumeAnalyzerPage() {
                       <p className="text-sm text-muted-foreground mt-1">Day-by-day plan with milestones & YouTube courses — tailored to your background</p>
                     </div>
 
-                    {/* Roadmap overview */}
                     {candidateResult.roadmap.overall && (() => {
                       const ov = candidateResult.roadmap.overall;
                       return (
@@ -544,10 +534,10 @@ export default function ResumeAnalyzerPage() {
                           <p className="text-xs font-mono tracking-widest uppercase text-success">📅 COMPLETE LEARNING ROADMAP</p>
                           <div className="flex gap-8 flex-wrap">
                             {[
-                              { val: ov.total_days, lbl: "Total Days", color: "text-success" },
-                              { val: ov.total_weeks, lbl: "Weeks", color: "text-warning" },
-                              { val: `${ov.hours_per_day}h`, lbl: "Per Day", color: "text-blue-400" },
-                              { val: ov.difficulty, lbl: "Difficulty", color: "text-orange-400" },
+                              { val: ov.total_days,          lbl: "Total Days",  color: "text-success" },
+                              { val: ov.total_weeks,         lbl: "Weeks",       color: "text-warning" },
+                              { val: `${ov.hours_per_day}h`, lbl: "Per Day",     color: "text-blue-400" },
+                              { val: ov.difficulty,          lbl: "Difficulty",  color: "text-orange-400" },
                             ].map(({ val, lbl, color }) => (
                               <div key={lbl}>
                                 <div className={cn("text-3xl font-bold font-mono", color)}>{val}</div>
@@ -574,65 +564,30 @@ export default function ResumeAnalyzerPage() {
                       );
                     })()}
 
-                    {/* Per-skill cards */}
                     {candidateResult.roadmap.skills.map((sk, idx) => (
                       <SkillRoadmapCard key={idx} sk={sk} idx={idx} />
                     ))}
                   </div>
                 )}
-
-                {/* Debug section */}
-                <div className="space-y-2">
-                  <button onClick={() => setShowDebug(v => !v)}
-                    className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    {showDebug ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    🐛 Debug — ATS internals
-                  </button>
-                  {showDebug && candidateResult.debug && (
-                    <div className="glass-card p-4 space-y-2 font-mono text-xs text-muted-foreground">
-                      <p><span className="text-success">JD keywords ({candidateResult.debug.jd_keywords.length}):</span> {candidateResult.debug.jd_keywords.join(", ")}</p>
-                      <p><span className="text-success">Matched ({candidateResult.debug.matched.length}):</span> {candidateResult.debug.matched.join(", ")}</p>
-                      <p><span className="text-destructive">Not matched ({candidateResult.debug.not_matched.length}):</span> {candidateResult.debug.not_matched.join(", ")}</p>
-                    </div>
-                  )}
-                  <button onClick={() => setShowRawJson(v => !v)}
-                    className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    {showRawJson ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    🔩 Raw JSON
-                  </button>
-                  {showRawJson && (
-                    <div className="glass-card p-4 overflow-auto max-h-80">
-                      <pre className="text-xs text-muted-foreground">{JSON.stringify({
-                        semantic_score: candidateResult.semantic_score,
-                        ats_score: candidateResult.ats_score,
-                        keyword_density: candidateResult.keyword_density,
-                        resume_skills: candidateResult.resume_skills,
-                        jd_skills: candidateResult.jd_skills,
-                        missing_skills: candidateResult.missing_skills,
-                      }, null, 2)}</pre>
-                    </div>
-                  )}
-                </div>
               </div>
             )}
 
-            {/* ── RECRUITER RESULTS ──────────────────────────────────── */}
+            {/* ── RECRUITER RESULTS ──────────────────────────────────────── */}
             {recruiterResult && (() => {
               const r = recruiterResult.report;
               const vc = verdictColor(r.verdict);
               const os = r.overall_score;
               const scoreLabels: Record<string, string> = {
-                skill_match: "Skill Match",
-                experience_relevance: "Experience Relevance",
-                communication_clarity: "Communication Clarity",
-                technical_depth: "Technical Depth",
+                skill_match:            "Skill Match",
+                experience_relevance:   "Experience Relevance",
+                communication_clarity:  "Communication Clarity",
+                technical_depth:        "Technical Depth",
                 culture_fit_indicators: "Culture Fit",
               };
               return (
                 <div className="space-y-6">
                   <h2 className="text-lg font-bold text-foreground">📊 Recruiter Dashboard</h2>
 
-                  {/* Verdict */}
                   <div className={cn("rounded-xl border-2 p-6 text-center", vc.bg, vc.border)}>
                     <p className={cn("text-xs font-mono tracking-widest uppercase mb-2", vc.text)}>HIRING VERDICT</p>
                     <p className={cn("text-2xl font-bold", vc.text)}>
@@ -641,7 +596,6 @@ export default function ResumeAnalyzerPage() {
                     <p className="text-sm text-muted-foreground mt-2">{r.verdict_reason}</p>
                   </div>
 
-                  {/* Scorecard */}
                   <div className="grid gap-4 lg:grid-cols-[180px_1fr]">
                     <div className="glass-card p-5 text-center space-y-2">
                       <div className={cn("text-5xl font-bold font-mono", scoreColor(os))}>{os}</div>
@@ -669,13 +623,11 @@ export default function ResumeAnalyzerPage() {
                     </div>
                   </div>
 
-                  {/* Summary */}
                   <div className="glass-card border-l-4 border-l-purple-400 p-4">
                     <p className="text-xs font-mono tracking-widest uppercase text-purple-400 mb-2">CANDIDATE SUMMARY</p>
                     <p className="text-sm leading-relaxed text-foreground">{r.candidate_summary}</p>
                   </div>
 
-                  {/* Strengths / Red flags */}
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
                       <h3 className="text-sm font-semibold text-foreground">✅ Strengths</h3>
@@ -693,7 +645,6 @@ export default function ResumeAnalyzerPage() {
                     </div>
                   </div>
 
-                  {/* Skill match */}
                   <div className="glass-card p-5 space-y-3">
                     <div className="flex items-center justify-between">
                       <p className="text-xs font-mono tracking-widest uppercase text-muted-foreground">Skill Overlap</p>
@@ -706,12 +657,13 @@ export default function ResumeAnalyzerPage() {
                         style={{ width: `${r._meta?.match_pct || 0}%` }} />
                     </div>
                   </div>
+
                   <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {[
-                      { label: "✅ Matched", skills: r.skill_match_breakdown?.matched, v: "green" as const },
-                      { label: "❗ Critical Missing", skills: r.skill_match_breakdown?.missing_critical, v: "red" as const },
-                      { label: "⚠️ Nice-to-have", skills: r.skill_match_breakdown?.missing_nice_to_have, v: "yellow" as const },
-                      { label: "⭐ Bonus Skills", skills: r.skill_match_breakdown?.bonus_skills, v: "blue" as const },
+                      { label: "✅ Matched",          skills: r.skill_match_breakdown?.matched,              v: "green"  as const },
+                      { label: "❗ Critical Missing", skills: r.skill_match_breakdown?.missing_critical,     v: "red"    as const },
+                      { label: "⚠️ Nice-to-have",    skills: r.skill_match_breakdown?.missing_nice_to_have, v: "yellow" as const },
+                      { label: "⭐ Bonus Skills",     skills: r.skill_match_breakdown?.bonus_skills,         v: "blue"   as const },
                     ].map(({ label, skills, v }) => (
                       <div key={label} className="space-y-2">
                         <p className="text-xs font-semibold text-muted-foreground">{label}</p>
@@ -724,17 +676,15 @@ export default function ResumeAnalyzerPage() {
                     ))}
                   </div>
 
-                  {/* ATS scores */}
                   <div>
                     <h3 className="text-sm font-semibold text-foreground mb-3">📐 Base ATS Scores</h3>
                     <div className="grid gap-4 grid-cols-3">
-                      <ScoreCard label="Semantic Match" value={recruiterResult.semantic_score} />
-                      <ScoreCard label="ATS Score" value={recruiterResult.ats_score} />
+                      <ScoreCard label="Semantic Match"  value={recruiterResult.semantic_score} />
+                      <ScoreCard label="ATS Score"       value={recruiterResult.ats_score} />
                       <ScoreCard label="Keyword Density" value={recruiterResult.keyword_density} />
                     </div>
                   </div>
 
-                  {/* Interview questions */}
                   <div className="space-y-3">
                     <h3 className="text-sm font-semibold text-foreground">💬 Suggested Interview Questions</h3>
                     {(r.interview_questions || []).map((q, i) => (
@@ -746,25 +696,12 @@ export default function ResumeAnalyzerPage() {
                     ))}
                   </div>
 
-                  {/* Hiring recommendation */}
                   <div className="space-y-2">
                     <h3 className="text-sm font-semibold text-foreground">📋 Hiring Recommendation</h3>
                     <div className="glass-card border border-purple-400/20 p-4 text-sm leading-relaxed text-foreground">
                       {r.hiring_recommendation}
                     </div>
                   </div>
-
-                  {/* Raw JSON */}
-                  <button onClick={() => setShowRawJson(v => !v)}
-                    className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    {showRawJson ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    🔩 Raw JSON
-                  </button>
-                  {showRawJson && (
-                    <div className="glass-card p-4 overflow-auto max-h-80">
-                      <pre className="text-xs text-muted-foreground">{JSON.stringify(r, null, 2)}</pre>
-                    </div>
-                  )}
                 </div>
               );
             })()}
