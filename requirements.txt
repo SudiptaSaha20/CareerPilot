@@ -11,4 +11,21 @@ faiss-cpu
 tiktoken
 numpy
 uvicorn
+
+# FastAPI
 fastapi
+uvicorn[standard]
+python-multipart
+
+# PDF
+pypdf
+
+# Gemini — new SDK only (no google-generativeai)
+google-genai
+
+# LangChain — only text splitter needed now (no vectorstore/embeddings)
+langchain-core
+langchain-text-splitters
+
+# Env
+python-dotenv

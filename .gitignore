@@ -1,6 +1,7 @@
 .venv/
 .env
-__pycache__
+__pycache__/
 LICENSE
 README.md
-main3.py
+main3.py/
+main.py/

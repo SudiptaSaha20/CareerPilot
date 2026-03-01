@@ -3,597 +3,685 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Market Trend Analyzer 📈</title>
+<title>AI Resume ATS Analyzer 🚀</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --bg: #0a0a0f; --bg2: #0f0f1a; --card: #111120;
-  --border: #1e1e2e; --text: #e8e4dc; --muted: #555;
-  --green: #00e5a0; --yellow: #f5c542; --red: #ff5e5e; --blue: #4f9eff;
+  --bg:#0a0a0f; --bg2:#0f0f1a; --card:#111120; --border:#1e1e2e;
+  --text:#e8e4dc; --muted:#555;
+  --green:#00e5a0; --yellow:#f5c542; --red:#ff5e5e; --blue:#4f9eff; --purple:#a78bfa;
 }
-body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; }
+body { background:var(--bg); color:var(--text); font-family:'Syne',sans-serif; min-height:100vh; }
 
 /* Layout */
-.app { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
-.sidebar { background: var(--bg2); border-right: 1px solid var(--border); padding: 2rem 1.5rem; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
-.main { padding: 2rem 2.5rem; }
+.app { display:grid; grid-template-columns:240px 1fr; min-height:100vh; }
+.sidebar { background:var(--bg2); border-right:1px solid var(--border); padding:2rem 1.5rem; position:sticky; top:0; height:100vh; overflow-y:auto; }
+.main { padding:2rem 2.5rem; max-width:1000px; }
 
 /* Sidebar */
-.sidebar-logo { font-size: 1.5rem; font-weight: 800; margin-bottom: 0.25rem; }
-.sidebar-sub  { font-size: 0.75rem; color: var(--muted); font-family: 'IBM Plex Mono', monospace; margin-bottom: 1.5rem; }
-.sidebar hr   { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
-.sidebar ol   { padding-left: 1.2rem; color: #aaa; font-size: 0.82rem; line-height: 2.2; }
-.sidebar-note { font-size: 0.72rem; color: #444; font-family: 'IBM Plex Mono', monospace; margin-top: 1rem; }
+.logo { font-size:1.3rem; font-weight:800; margin-bottom:1.5rem; }
+.sidebar hr { border:none; border-top:1px solid var(--border); margin:1rem 0; }
+.mode-btn { width:100%; background:var(--card); border:1px solid var(--border); color:var(--muted); border-radius:8px; padding:0.65rem 1rem; font-family:'Syne',sans-serif; font-size:0.82rem; font-weight:600; cursor:pointer; text-align:left; margin-bottom:0.5rem; transition:all 0.2s; }
+.mode-btn.active-candidate { border-color:var(--green); color:var(--green); background:#00e5a010; }
+.mode-btn.active-recruiter  { border-color:var(--purple); color:var(--purple); background:#a78bfa10; }
+.mode-btn:hover { border-color:#333; }
+.sidebar-notes { font-size:0.78rem; color:#aaa; line-height:1.9; }
 
 /* Header */
-h1 { font-size: 2rem; font-weight: 800; }
-h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 0.5rem; }
-h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem; }
-.subtitle { color: var(--muted); font-size: 0.88rem; margin-bottom: 1.5rem; }
-hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+h1 { font-size:1.9rem; font-weight:800; }
+.subtitle { font-size:0.88rem; margin-bottom:1.5rem; }
+hr.divider { border:none; border-top:1px solid var(--border); margin:1.5rem 0; }
 
-/* Upload */
-.upload-zone {
-  background: #001a12; border: 1.5px dashed #00e5a030; border-radius: 12px;
-  padding: 2.5rem; text-align: center; cursor: pointer; transition: border-color 0.2s;
-  position: relative; margin-bottom: 1rem;
-}
-.upload-zone:hover { border-color: #00e5a080; }
-.upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-.upload-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
-.upload-text { font-size: 0.85rem; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
-.upload-name { color: var(--green); font-size: 0.82rem; margin-top: 0.4rem; font-family: 'IBM Plex Mono', monospace; }
+/* Input grid */
+.input-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1rem; }
+.input-group h3 { font-size:0.92rem; font-weight:700; margin-bottom:0.65rem; }
+.upload-zone { background:#001a12; border:1.5px dashed #00e5a030; border-radius:12px; padding:1.5rem; text-align:center; cursor:pointer; position:relative; transition:border-color 0.2s; }
+.upload-zone:hover { border-color:#00e5a070; }
+.upload-zone input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+.upload-icon { font-size:2rem; margin-bottom:0.4rem; }
+.upload-text { font-size:0.78rem; color:var(--muted); font-family:'IBM Plex Mono',monospace; }
+.upload-name { color:var(--green); font-size:0.78rem; margin-top:0.4rem; font-family:'IBM Plex Mono',monospace; }
+textarea { width:100%; height:200px; background:var(--card); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:'IBM Plex Mono',monospace; font-size:0.85rem; padding:0.75rem; resize:vertical; outline:none; }
+textarea:focus { border-color:var(--green); }
 
-/* Button */
-.btn { background: var(--green); color: var(--bg); border: none; border-radius: 8px; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; padding: 0.75rem 2rem; cursor: pointer; width: 100%; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-.btn:hover { opacity: 0.85; }
-.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+/* Buttons */
+.btn { background:var(--green); color:var(--bg); border:none; border-radius:8px; font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem; padding:0.72rem 1.5rem; cursor:pointer; width:100%; transition:opacity 0.2s; display:flex; align-items:center; justify-content:center; gap:0.5rem; }
+.btn:hover { opacity:0.85; }
+.btn:disabled { opacity:0.45; cursor:not-allowed; }
+.btn-recruiter { background:var(--purple); color:var(--bg); }
 
 /* Spinner */
-.spin { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--bg); border-top-color: transparent; border-radius: 50%; animation: rot 0.7s linear infinite; }
-@keyframes rot { to { transform: rotate(360deg); } }
+.spin { display:inline-block; width:15px; height:15px; border:2px solid var(--bg); border-top-color:transparent; border-radius:50%; animation:rot 0.7s linear infinite; }
+@keyframes rot { to { transform:rotate(360deg); } }
 
-/* Status */
-.status { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.82rem; color: #aaa; font-family: 'IBM Plex Mono', monospace; display: none; margin-top: 0.75rem; }
-.status.show { display: block; }
+/* Status / Error */
+.status { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:0.65rem 1rem; font-size:0.8rem; color:#aaa; font-family:'IBM Plex Mono',monospace; display:none; margin-top:0.75rem; }
+.status.show { display:block; }
+.err { background:#ff5e5e15; border:1px solid #ff5e5e40; color:var(--red); border-radius:8px; padding:0.65rem 1rem; font-size:0.82rem; display:none; margin-top:0.75rem; }
+.err.show { display:block; }
+.warn { background:#f5c54215; border:1px solid #f5c54240; color:var(--yellow); border-radius:8px; padding:0.6rem 1rem; font-size:0.8rem; margin-bottom:0.5rem; }
 
-/* Error */
-.error-box { background: #ff5e5e15; border: 1px solid #ff5e5e40; color: var(--red); border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.85rem; display: none; margin-top: 0.75rem; }
-.error-box.show { display: block; }
-
-/* Metrics grid */
-.metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
-.metric-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; text-align: center; }
-.metric-val { font-size: 2.4rem; font-weight: 800; font-family: 'IBM Plex Mono', monospace; line-height: 1; }
-.metric-lbl { font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-top: 0.5rem; }
-.c-green { color: var(--green); } .c-yellow { color: var(--yellow); } .c-red { color: var(--red); } .c-blue { color: var(--blue); }
-
-/* Section card */
-.section { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; }
-.insight-card { background: var(--card); border-left: 3px solid var(--green); border-radius: 0 12px 12px 0; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
-.insight-label { font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; font-family: 'IBM Plex Mono', monospace; }
-.insight-text  { font-size: 0.95rem; line-height: 1.7; color: var(--text); }
-
-/* Chart container */
-.chart-wrap { position: relative; height: 300px; margin-bottom: 1rem; }
+/* Score cards */
+.scores-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.5rem; }
+.score-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:1.5rem; text-align:center; }
+.score-val { font-size:2.8rem; font-weight:800; font-family:'IBM Plex Mono',monospace; line-height:1; }
+.score-lbl { font-size:0.7rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--muted); margin-top:0.5rem; }
+.score-bar { background:#1e1e2e; border-radius:999px; height:7px; margin-top:0.75rem; overflow:hidden; }
+.score-bar-fill { height:100%; border-radius:999px; transition:width 0.8s ease; }
+.c-green { color:var(--green); } .c-yellow { color:var(--yellow); } .c-red { color:var(--red); }
 
 /* Pills */
-.pill-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
-.pill { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; padding: 0.2rem 0.65rem; border-radius: 999px; font-weight: 500; border: 1px solid; }
-.pill-green  { background: #00e5a015; border-color: #00e5a040; color: var(--green); }
-.pill-red    { background: #ff5e5e15; border-color: #ff5e5e40; color: var(--red); }
-.pill-blue   { background: #4f9eff15; border-color: #4f9eff40; color: var(--blue); }
-.pill-yellow { background: #f5c54215; border-color: #f5c54240; color: var(--yellow); }
+.skills-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.5rem; }
+.skills-box { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:1.25rem; }
+.skills-box h4 { font-size:0.82rem; font-weight:700; margin-bottom:0.65rem; }
+.pills { display:flex; flex-wrap:wrap; gap:0.4rem; }
+.pill { font-family:'IBM Plex Mono',monospace; font-size:0.72rem; padding:0.2rem 0.65rem; border-radius:999px; font-weight:500; border:1px solid; }
+.p-green  { background:#00e5a015; border-color:#00e5a040; color:var(--green); }
+.p-blue   { background:#4f9eff15; border-color:#4f9eff40; color:var(--blue); }
+.p-red    { background:#ff5e5e15; border-color:#ff5e5e40; color:var(--red); }
+.p-yellow { background:#f5c54215; border-color:#f5c54240; color:var(--yellow); }
+.p-purple { background:#a78bfa15; border-color:#a78bfa40; color:var(--purple); }
 
-/* Pill columns */
-.pill-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }
-.pill-col-title { font-size: 0.78rem; font-weight: 700; margin-bottom: 0.5rem; }
+/* Roadmap overview */
+.roadmap-overview { background:linear-gradient(135deg,#001a12,#0a0a0f); border:1px solid #00e5a030; border-radius:14px; padding:1.5rem 1.75rem; margin-bottom:1.5rem; }
+.roadmap-stats { display:flex; gap:2.5rem; flex-wrap:wrap; margin-bottom:1rem; }
+.stat-val { font-size:2.2rem; font-weight:800; font-family:'IBM Plex Mono',monospace; line-height:1; }
+.stat-lbl { font-size:0.62rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.1em; }
 
-/* Skill insights list */
-.skill-row { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 0.5rem; display: flex; gap: 1rem; align-items: center; }
-.skill-name  { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--green); min-width: 120px; }
-.skill-trend { font-size: 0.75rem; color: var(--muted); min-width: 80px; }
-.skill-comment { font-size: 0.78rem; color: #888; }
+/* Skill roadmap card */
+.skill-rmap-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:1.4rem 1.6rem; margin-bottom:1rem; }
+.timeline-track { display:flex; border-radius:8px; overflow:hidden; height:10px; margin:0.5rem 0 0.25rem; gap:2px; }
+.tl-beg { background:var(--green); } .tl-int { background:var(--yellow); } .tl-exp { background:var(--red); }
 
-/* Job cards */
-.job-card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; margin-bottom: 0.75rem; }
-.job-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-.job-title  { font-weight: 700; font-size: 0.95rem; }
-.job-match  { font-family: 'IBM Plex Mono', monospace; font-size: 1.1rem; font-weight: 800; }
-.job-salary { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.5rem; }
-.job-section-label { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.3rem; font-family: 'IBM Plex Mono', monospace; }
+/* Tabs */
+.tabs { display:flex; gap:0.4rem; margin-bottom:1rem; flex-wrap:wrap; }
+.tab-btn { background:var(--card); border:1px solid var(--border); color:var(--muted); border-radius:8px; padding:0.35rem 0.85rem; font-family:'Syne',sans-serif; font-size:0.75rem; font-weight:600; cursor:pointer; transition:all 0.2s; }
+.tab-btn.active { border-color:var(--green); color:var(--green); background:#00e5a010; }
+.tab-pane { display:none; }
+.tab-pane.active { display:block; }
 
-/* Salary table */
-.sal-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-.sal-table th { text-align: left; color: var(--muted); font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); font-family: 'IBM Plex Mono', monospace; font-weight: 500; }
-.sal-table td { padding: 0.6rem 0.75rem; border-bottom: 1px solid #1e1e2e50; }
-.sal-table tr:last-child td { border-bottom: none; }
-.sal-table tr:hover td { background: #ffffff05; }
+/* Phase card */
+.phase-card { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:0.9rem 1.1rem; margin-bottom:0.55rem; }
+.phase-card.beg { border-left:3px solid var(--green); } .phase-card.int { border-left:3px solid var(--yellow); } .phase-card.exp { border-left:3px solid var(--red); }
 
-/* Salary metrics */
-.sal-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem; }
+/* Approach row */
+.approach-row { display:flex; gap:1rem; align-items:flex-start; background:var(--bg); border:1px solid var(--border); border-radius:9px; padding:0.75rem 1rem; margin-bottom:0.5rem; }
+.step-badge { font-family:'IBM Plex Mono',monospace; font-size:0.62rem; color:var(--green); font-weight:700; min-width:50px; padding-top:0.15rem; }
 
-/* Learning path */
-.learn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-.learn-card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem; }
-.learn-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; }
-.learn-skill { font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; font-weight: 700; }
-.learn-badge { font-size: 0.62rem; padding: 0.12rem 0.5rem; border-radius: 999px; font-family: 'IBM Plex Mono', monospace; border: 1px solid; }
-.learn-resource { font-size: 0.82rem; color: #c8c4bc; margin-bottom: 0.5rem; }
-.learn-meta { display: flex; gap: 1rem; font-size: 0.75rem; color: var(--muted); }
-.learn-salary { color: var(--green) !important; }
+/* Course card */
+.course-card { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:1.1rem; margin-bottom:0.65rem; transition:border-color 0.2s; }
+.course-card:hover { border-color:#00e5a030; }
 
-/* Gap rows */
-.gap-row { background: var(--bg); border: 1px solid #ff5e5e20; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 0.5rem; display: flex; gap: 1rem; align-items: center; }
-.gap-skill { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--red); min-width: 150px; }
-.gap-why   { font-size: 0.78rem; color: #888; }
+/* Milestone chips */
+.milestone-chips { display:flex; flex-wrap:wrap; gap:0.4rem; margin-bottom:1rem; }
+.m-chip { font-family:'IBM Plex Mono',monospace; font-size:0.65rem; padding:0.15rem 0.55rem; border-radius:999px; background:#00e5a015; border:1px solid #00e5a040; color:var(--green); }
 
-/* Results hidden initially */
-#results { display: none; }
+/* Do/Don't */
+.do-chip   { background:#00e5a010; border-left:3px solid #00e5a050; border-radius:0 8px 8px 0; padding:0.5rem 0.75rem; margin-bottom:0.4rem; font-size:0.82rem; }
+.dont-chip { background:#ff5e5e10; border-left:3px solid #ff5e5e50; border-radius:0 8px 8px 0; padding:0.5rem 0.75rem; margin-bottom:0.4rem; font-size:0.82rem; }
 
-/* Responsive */
-@media (max-width: 900px) {
-  .app { grid-template-columns: 1fr; }
-  .sidebar { display: none; }
-  .metrics-grid { grid-template-columns: 1fr 1fr; }
-  .pill-cols, .learn-grid { grid-template-columns: 1fr; }
-  .sal-metrics { grid-template-columns: 1fr; }
+/* Recruiter */
+.verdict-banner { border-radius:12px; padding:1.5rem; text-align:center; margin-bottom:1.5rem; border:2px solid; }
+.recruiter-scorecard { display:grid; grid-template-columns:180px 1fr; gap:1.5rem; margin-bottom:1.5rem; }
+.overall-score-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:2rem; text-align:center; }
+.big-score { font-size:4rem; font-weight:800; font-family:'IBM Plex Mono',monospace; line-height:1; }
+.score-row { margin-bottom:0.75rem; }
+.score-row-label { display:flex; justify-content:space-between; font-size:0.78rem; margin-bottom:0.3rem; }
+.score-mini-bar { background:#1e1e2e; border-radius:999px; height:6px; overflow:hidden; }
+.score-mini-fill { height:100%; border-radius:999px; }
+.candidate-summary { background:var(--card); border-left:3px solid var(--purple); border-radius:0 12px 12px 0; padding:1rem 1.25rem; margin-bottom:1.5rem; }
+.flag-card     { background:var(--card); border-left:3px solid var(--red);   border-radius:0 8px 8px 0; padding:0.75rem 1rem; margin-bottom:0.5rem; font-size:0.86rem; }
+.strength-card { background:var(--card); border-left:3px solid var(--green); border-radius:0 8px 8px 0; padding:0.75rem 1rem; margin-bottom:0.5rem; font-size:0.86rem; }
+.interview-q   { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:1rem; margin-bottom:0.6rem; }
+.skill-match-bar { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:1.25rem; margin-bottom:1.5rem; }
+.skill-match-4col { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; }
+
+/* Debug */
+details { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:1rem 1.25rem; margin-top:1rem; }
+summary { font-size:0.85rem; font-weight:600; cursor:pointer; color:var(--muted); }
+pre { margin-top:0.75rem; font-size:0.7rem; color:#888; overflow:auto; max-height:400px; }
+
+/* Results hidden */
+#results { display:none; }
+
+@media (max-width:800px) {
+  .app { grid-template-columns:1fr; }
+  .sidebar { display:none; }
+  .input-grid, .scores-grid, .skills-grid, .recruiter-scorecard, .skill-match-4col { grid-template-columns:1fr; }
+  .scores-grid { grid-template-columns:1fr 1fr; }
 }
 </style>
 </head>
 <body>
 <div class="app">
 
-<!-- Sidebar -->
+<!-- ── Sidebar ── -->
 <aside class="sidebar">
-  <div class="sidebar-logo">📈 Market AI</div>
-  <div class="sidebar-sub">Trend Analyzer</div>
+  <div class="logo">🚀 ATS Analyzer</div>
+  <div style="font-size:0.72rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:1.5rem">Powered by Gemini AI</div>
+  <p style="font-size:0.72rem;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.5rem">Mode</p>
+  <button class="mode-btn active-candidate" id="btnCandidate" onclick="switchMode('candidate')">👤 Candidate Mode</button>
+  <button class="mode-btn" id="btnRecruiter" onclick="switchMode('recruiter')">🏢 Recruiter Mode</button>
   <hr/>
-  <p style="font-size:0.82rem;font-weight:700;margin-bottom:0.5rem">Powered by Gemini AI</p>
-  <ol>
-    <li>Upload your resume PDF</li>
-    <li>Hit Analyze Market</li>
-    <li>Get real-time insights:</li>
-  </ol>
-  <ul style="padding-left:1.2rem;color:#aaa;font-size:0.78rem;line-height:2.1;margin-top:0.5rem">
-    <li>Skill demand scores</li>
-    <li>Market trend charts</li>
-    <li>Job role matches</li>
-    <li>Salary insights</li>
-    <li>Skill gap report</li>
-    <li>Learning path</li>
-  </ul>
-  <div class="sidebar-note">No dataset needed —<br/>Gemini knows the market</div>
+  <div id="sidebarNotes" class="sidebar-notes">
+    <b>Candidate Mode:</b><br/>
+    1. Upload resume PDF<br/>
+    2. Paste job description<br/>
+    3. Get ATS score + skill gaps<br/>
+    4. Day-by-day learning roadmap<br/>
+    5. YouTube courses per skill
+  </div>
 </aside>
 
-<!-- Main -->
+<!-- ── Main ── -->
 <main class="main">
-  <h1>📈 Market Trend Analyzer</h1>
-  <p class="subtitle">AI-powered job market analysis — upload your resume and get instant insights</p>
-  <hr/>
+  <h1 id="pageTitle">🚀 AI Resume ATS Analyzer</h1>
+  <p class="subtitle" id="pageSubtitle" style="color:var(--muted)">Semantic + keyword matching powered by Gemini</p>
+  <hr class="divider"/>
 
-  <!-- Upload -->
-  <h3>📄 Upload Your Resume</h3>
-  <div class="upload-zone" id="dropZone">
-    <input type="file" id="resumeFile" accept=".pdf" onchange="onFileChange(this)"/>
-    <div class="upload-icon">📄</div>
-    <div class="upload-text">Drop PDF here or click to browse</div>
-    <div class="upload-name" id="fileName"></div>
+  <!-- Inputs -->
+  <div class="input-grid">
+    <div class="input-group">
+      <h3 id="uploadLabel">📄 Upload Resume</h3>
+      <div class="upload-zone">
+        <input type="file" id="resumeFile" accept=".pdf" onchange="onFile(this)"/>
+        <div class="upload-icon">📄</div>
+        <div class="upload-text">Drop PDF here or click to browse</div>
+        <div class="upload-name" id="fileName"></div>
+      </div>
+    </div>
+    <div class="input-group">
+      <h3>📋 Job Description</h3>
+      <textarea id="jdInput" placeholder="Paste the full job description here..."></textarea>
+    </div>
   </div>
-  <button class="btn" id="analyzeBtn" onclick="runAnalysis()">🔍 &nbsp;Analyze Market</button>
-  <div class="status" id="status">⏳ Initializing...</div>
-  <div class="error-box" id="errBox"></div>
+
+  <button class="btn" id="analyzeBtn" onclick="runAnalysis()">🔍 &nbsp;Analyze Resume</button>
+  <div class="status" id="status"></div>
+  <div class="err" id="errBox"></div>
 
   <!-- Results -->
   <div id="results">
-    <hr/>
-    <h2>📊 Market Analysis Results</h2>
+    <hr class="divider"/>
+    <div id="warningsBox"></div>
 
-    <!-- Summary -->
-    <div class="insight-card" id="summaryCard">
-      <div class="insight-label">AI Market Assessment</div>
-      <div class="insight-text" id="summaryText"></div>
-    </div>
+    <!-- ── CANDIDATE RESULTS ── -->
+    <div id="candidateResults">
+      <h2 style="margin-bottom:1rem">📊 Results</h2>
 
-    <!-- Metrics -->
-    <div class="metrics-grid">
-      <div class="metric-card"><div class="metric-val c-green" id="mSkills">—</div><div class="metric-lbl">Skills Detected</div></div>
-      <div class="metric-card"><div class="metric-val" id="mHighDemand">—</div><div class="metric-lbl">High Demand Skills</div></div>
-      <div class="metric-card"><div class="metric-val" id="mMatch">—</div><div class="metric-lbl">Avg Job Match</div></div>
-      <div class="metric-card"><div class="metric-val" id="mGaps">—</div><div class="metric-lbl">Skill Gaps Found</div></div>
-    </div>
-
-    <!-- 1. Skill Demand Chart -->
-    <div class="section">
-      <h3>🔍 Your Skills vs Market Demand</h3>
-      <div class="chart-wrap"><canvas id="skillDemandChart"></canvas></div>
-      <div class="pill-cols" id="demandPills"></div>
-      <div id="skillInsights" style="margin-top:1rem"></div>
-    </div>
-
-    <!-- 2. Trending Skills Chart -->
-    <div class="section">
-      <h3>📈 Top Trending Skills in 2024–2025 Market</h3>
-      <div class="chart-wrap"><canvas id="trendingChart"></canvas></div>
-    </div>
-
-    <!-- 3. Skill Gaps Chart -->
-    <div class="section">
-      <h3>❌ Critical Skill Gaps</h3>
-      <div class="chart-wrap"><canvas id="gapChart"></canvas></div>
-      <div id="gapList" style="margin-top:1rem"></div>
-    </div>
-
-    <!-- 4. Job Matches Chart -->
-    <div class="section">
-      <h3>💼 Best Matching Job Roles</h3>
-      <div class="chart-wrap"><canvas id="jobChart"></canvas></div>
-      <div id="jobCards" style="margin-top:1.25rem"></div>
-    </div>
-
-    <!-- 5. Salary Insights -->
-    <div class="section">
-      <h3>💰 Salary Insights</h3>
-      <div id="salSummary" style="background:#f5c54215;border:1px solid #f5c54240;border-radius:8px;padding:0.75rem 1rem;font-size:0.85rem;color:#f5c542;margin-bottom:1.25rem"></div>
-      <div class="sal-metrics">
-        <div class="metric-card"><div class="metric-val c-yellow" id="salCurrent">—</div><div class="metric-lbl">Current Estimated Range</div></div>
-        <div class="metric-card"><div class="metric-val c-green" id="salPotential">—</div><div class="metric-lbl">Potential After Upskilling</div></div>
+      <!-- Score cards -->
+      <div class="scores-grid">
+        <div class="score-card">
+          <div class="score-val" id="semScore">—</div>
+          <div class="score-lbl">Semantic Match</div>
+          <div class="score-bar"><div class="score-bar-fill" id="semBar" style="width:0"></div></div>
+        </div>
+        <div class="score-card">
+          <div class="score-val" id="atsScore">—</div>
+          <div class="score-lbl">ATS Score</div>
+          <div class="score-bar"><div class="score-bar-fill" id="atsBar" style="width:0"></div></div>
+        </div>
+        <div class="score-card">
+          <div class="score-val" id="kwScore">—</div>
+          <div class="score-lbl">Keyword Density</div>
+          <div class="score-bar"><div class="score-bar-fill" id="kwBar" style="width:0"></div></div>
+        </div>
       </div>
-      <div class="chart-wrap" style="height:260px"><canvas id="salaryChart"></canvas></div>
-      <table class="sal-table" id="salTable">
-        <thead><tr><th>Role</th><th>Min</th><th>Avg</th><th>Max</th></tr></thead>
-        <tbody id="salBody"></tbody>
-      </table>
+
+      <!-- Skills -->
+      <div class="skills-grid">
+        <div class="skills-box"><h4>✅ Resume Skills</h4><div class="pills" id="resumeSkillsPills"></div></div>
+        <div class="skills-box"><h4>🎯 JD Skills</h4><div class="pills" id="jdSkillsPills"></div></div>
+        <div class="skills-box"><h4>❌ Missing Skills</h4><div class="pills" id="missingSkillsPills"></div></div>
+      </div>
+
+      <!-- Roadmap -->
+      <div id="roadmapSection" style="display:none">
+        <hr class="divider"/>
+        <h2 style="margin-bottom:0.25rem">🗓️ Personalized Learning Roadmap</h2>
+        <p style="color:var(--muted);font-size:0.82rem;margin-bottom:1.5rem">Day-by-day plan, learning approach, milestones & YouTube courses — tailored to your background</p>
+        <div id="roadmapContent"></div>
+      </div>
+
+      <!-- Debug -->
+      <details><summary>🐛 Debug — ATS internals</summary><div id="debugContent" style="font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:#aaa;line-height:2;margin-top:0.75rem"></div></details>
+      <details style="margin-top:0.75rem"><summary>🔩 Raw JSON</summary><pre id="rawJsonCandidate"></pre></details>
     </div>
 
-    <!-- 6. Learning Path -->
-    <div class="section">
-      <h3>🎯 Prioritized Learning Path</h3>
-      <p style="color:var(--muted);font-size:0.82rem;margin-bottom:1rem">Skills to learn for maximum career impact</p>
-      <div class="learn-grid" id="learnGrid"></div>
-    </div>
+    <!-- ── RECRUITER RESULTS ── -->
+    <div id="recruiterResults" style="display:none">
+      <h2 style="margin-bottom:1rem">📊 Recruiter Dashboard</h2>
 
-    <!-- Raw JSON -->
-    <details style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin-top:1rem">
-      <summary style="font-size:0.85rem;font-weight:600;cursor:pointer">🔩 Raw JSON</summary>
-      <pre id="rawJson" style="margin-top:0.75rem;font-size:0.7rem;color:#888;overflow:auto;max-height:400px"></pre>
-    </details>
+      <!-- Verdict -->
+      <div id="verdictBanner"></div>
+
+      <!-- Scorecard -->
+      <div class="recruiter-scorecard">
+        <div class="overall-score-card">
+          <div class="big-score" id="overallScore">—</div>
+          <div style="font-size:0.5rem;color:var(--muted);font-family:'IBM Plex Mono',monospace">/100</div>
+          <div style="font-size:0.68rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-top:0.4rem">Overall Score</div>
+          <div style="font-size:0.72rem;color:var(--muted);margin-top:0.5rem">Salary Band: <span style="color:var(--blue)" id="salaryBand">—</span></div>
+        </div>
+        <div id="scoreRows"></div>
+      </div>
+
+      <!-- Candidate Summary -->
+      <div class="candidate-summary" id="candidateSummary"></div>
+
+      <!-- Strengths / Red Flags -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+        <div><h3 style="margin-bottom:0.75rem">✅ Strengths</h3><div id="strengthsList"></div></div>
+        <div><h3 style="margin-bottom:0.75rem">🚩 Red Flags</h3><div id="flagsList"></div></div>
+      </div>
+
+      <!-- Skill Match -->
+      <h3 style="margin-bottom:0.75rem">🎯 Skill Match Breakdown</h3>
+      <div class="skill-match-bar">
+        <div style="display:flex;justify-content:space-between;margin-bottom:0.75rem">
+          <span style="font-size:0.72rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:0.15em;text-transform:uppercase">Skill Overlap</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:1.4rem;font-weight:800" id="matchPctVal">—</span>
+        </div>
+        <div style="background:#1e1e2e;border-radius:999px;height:8px;overflow:hidden"><div id="matchPctBar" style="height:100%;border-radius:999px;transition:width 0.8s ease"></div></div>
+      </div>
+      <div class="skill-match-4col" style="margin-bottom:1.5rem">
+        <div><h4 style="font-size:0.78rem;margin-bottom:0.5rem">✅ Matched</h4><div class="pills" id="skillMatched"></div></div>
+        <div><h4 style="font-size:0.78rem;margin-bottom:0.5rem">❗ Critical Missing</h4><div class="pills" id="skillCritical"></div></div>
+        <div><h4 style="font-size:0.78rem;margin-bottom:0.5rem">⚠️ Nice-to-have</h4><div class="pills" id="skillNice"></div></div>
+        <div><h4 style="font-size:0.78rem;margin-bottom:0.5rem">⭐ Bonus Skills</h4><div class="pills" id="skillBonus"></div></div>
+      </div>
+
+      <!-- ATS scores -->
+      <h3 style="margin-bottom:0.75rem">📐 Base ATS Scores</h3>
+      <div class="scores-grid" style="margin-bottom:1.5rem">
+        <div class="score-card"><div class="score-val" id="rSemScore">—</div><div class="score-lbl">Semantic Match</div><div class="score-bar"><div class="score-bar-fill" id="rSemBar" style="width:0"></div></div></div>
+        <div class="score-card"><div class="score-val" id="rAtsScore">—</div><div class="score-lbl">ATS Score</div><div class="score-bar"><div class="score-bar-fill" id="rAtsBar" style="width:0"></div></div></div>
+        <div class="score-card"><div class="score-val" id="rKwScore">—</div><div class="score-lbl">Keyword Density</div><div class="score-bar"><div class="score-bar-fill" id="rKwBar" style="width:0"></div></div></div>
+      </div>
+
+      <!-- Interview Qs -->
+      <h3 style="margin-bottom:0.75rem">💬 Suggested Interview Questions</h3>
+      <div id="interviewQs" style="margin-bottom:1.5rem"></div>
+
+      <!-- Recommendation -->
+      <h3 style="margin-bottom:0.75rem">📋 Hiring Recommendation</h3>
+      <div id="hiringRec" style="background:var(--card);border:1px solid #a78bfa30;border-radius:12px;padding:1.25rem;margin-bottom:1.5rem;font-size:0.92rem;line-height:1.7"></div>
+
+      <details><summary>🔩 Raw JSON</summary><pre id="rawJsonRecruiter"></pre></details>
+    </div>
   </div>
 </main>
 </div>
 
 <script>
 const API = 'http://localhost:8000';
-let charts = {};
+let currentMode = 'candidate';
+
+// ── Mode switch ───────────────────────────────────────────────────────────
+function switchMode(mode) {
+  currentMode = mode;
+  document.getElementById('btnCandidate').className = 'mode-btn' + (mode==='candidate' ? ' active-candidate' : '');
+  document.getElementById('btnRecruiter').className  = 'mode-btn' + (mode==='recruiter'  ? ' active-recruiter'  : '');
+
+  if (mode === 'candidate') {
+    document.getElementById('pageTitle').textContent    = '🚀 AI Resume ATS Analyzer';
+    document.getElementById('pageSubtitle').textContent = 'Semantic + keyword matching powered by Gemini';
+    document.getElementById('pageSubtitle').style.color = 'var(--muted)';
+    document.getElementById('uploadLabel').textContent  = '📄 Upload Resume';
+    document.getElementById('analyzeBtn').className     = 'btn';
+    document.getElementById('analyzeBtn').innerHTML     = '🔍 &nbsp;Analyze Resume';
+    document.getElementById('sidebarNotes').innerHTML   =
+      '<b>Candidate Mode:</b><br/>1. Upload resume PDF<br/>2. Paste job description<br/>3. ATS score + skill gaps<br/>4. Day-by-day roadmap<br/>5. YouTube courses';
+  } else {
+    document.getElementById('pageTitle').textContent    = '🏢 Recruiter Dashboard';
+    document.getElementById('pageSubtitle').textContent = 'AI-powered candidate evaluation & scoring';
+    document.getElementById('pageSubtitle').style.color = 'var(--purple)';
+    document.getElementById('uploadLabel').textContent  = '📄 Upload Candidate Resume';
+    document.getElementById('analyzeBtn').className     = 'btn btn-recruiter';
+    document.getElementById('analyzeBtn').innerHTML     = '🏢 &nbsp;Run Recruiter Analysis';
+    document.getElementById('sidebarNotes').innerHTML   =
+      '<b>Recruiter Mode:</b><br/>1. Upload candidate resume<br/>2. Paste job description<br/>3. Hire/Maybe/Reject verdict<br/>4. Score card breakdown<br/>5. Interview questions';
+  }
+  document.getElementById('results').style.display = 'none';
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────
-function onFileChange(input) {
+function onFile(input) {
   document.getElementById('fileName').textContent = input.files[0]?.name ? `📎 ${input.files[0].name}` : '';
 }
 
 function setStatus(msg) {
   const el = document.getElementById('status');
-  el.textContent = msg;
-  el.classList.add('show');
+  el.textContent = msg; el.classList.add('show');
 }
 
 function showErr(msg) {
   const el = document.getElementById('errBox');
-  el.textContent = '❌ ' + msg;
-  el.classList.add('show');
+  el.textContent = '❌ ' + msg; el.classList.add('show');
   document.getElementById('status').classList.remove('show');
 }
 
-function scoreColor(v) { return v >= 75 ? '#00e5a0' : v >= 50 ? '#f5c542' : '#ff5e5e'; }
-function scoreClass(v) { return v >= 75 ? 'c-green' : v >= 50 ? 'c-yellow' : 'c-red'; }
+function scoreColor(v) { return v>=70 ? '#00e5a0' : v>=40 ? '#f5c542' : '#ff5e5e'; }
+function scoreClass(v) { return v>=70 ? 'c-green' : v>=40 ? 'c-yellow' : 'c-red'; }
 
-function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
+function setScore(valId, barId, value) {
+  const el = document.getElementById(valId);
+  el.textContent = value + '%';
+  el.className = 'score-val ' + scoreClass(value);
+  const bar = document.getElementById(barId);
+  bar.style.width      = value + '%';
+  bar.style.background = scoreColor(value);
+}
 
-const CHART_DEFAULTS = {
-  responsive: true, maintainAspectRatio: false,
-  plugins: { legend: { display: false } },
-  scales: {
-    x: { ticks: { color: '#888', font: { family: 'IBM Plex Mono', size: 11 } }, grid: { color: '#1e1e2e' } },
-    y: { ticks: { color: '#888', font: { family: 'IBM Plex Mono', size: 11 } }, grid: { color: '#1e1e2e' } }
-  }
-};
+function pills(arr, cssClass) {
+  if (!arr || !arr.length) return `<span style="color:#444">None</span>`;
+  return arr.map(s => `<span class="pill ${cssClass}">${s}</span>`).join('');
+}
 
-// ── Main ──────────────────────────────────────────────────────────────────
+// ── Main Analysis ─────────────────────────────────────────────────────────
 async function runAnalysis() {
   const file = document.getElementById('resumeFile').files[0];
+  const jd   = document.getElementById('jdInput').value.trim();
   if (!file) { showErr('Please upload a resume PDF.'); return; }
+  if (!jd)   { showErr('Please paste a job description.'); return; }
 
   const btn = document.getElementById('analyzeBtn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spin"></span> &nbsp;Analyzing...';
   document.getElementById('errBox').classList.remove('show');
   document.getElementById('results').style.display = 'none';
-  setStatus('📄 Reading your resume...');
+  setStatus('⏳ Extracting resume and running analysis...');
 
   const form = new FormData();
   form.append('resume', file);
+  form.append('job_description', jd);
+
+  const endpoint = currentMode === 'candidate' ? '/analyze/candidate' : '/analyze/recruiter';
 
   try {
-    setStatus('🧠 Gemini is analyzing the job market for your skills... (this may take 15-30s)');
-    const res  = await fetch(`${API}/analyze`, { method: 'POST', body: form });
+    setStatus(currentMode === 'candidate'
+      ? '🧠 Building semantic index and extracting skills...'
+      : '🏢 Running recruiter-grade AI analysis...');
+
+    const res  = await fetch(API + endpoint, { method:'POST', body:form });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || 'Analysis failed.');
 
     document.getElementById('status').classList.remove('show');
-    renderResults(data);
+
+    // Warnings
+    const wb = document.getElementById('warningsBox');
+    wb.innerHTML = (data.warnings||[]).map(w => `<div class="warn">⚠️ ${w}</div>`).join('');
+
+    if (currentMode === 'candidate') {
+      renderCandidate(data);
+      document.getElementById('candidateResults').style.display = 'block';
+      document.getElementById('recruiterResults').style.display = 'none';
+    } else {
+      renderRecruiter(data);
+      document.getElementById('recruiterResults').style.display = 'block';
+      document.getElementById('candidateResults').style.display = 'none';
+    }
+
     document.getElementById('results').style.display = 'block';
-    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+    document.getElementById('results').scrollIntoView({ behavior:'smooth' });
   } catch (e) {
     showErr(e.message);
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '🔍 &nbsp;Analyze Market';
+    btn.innerHTML = currentMode === 'candidate'
+      ? '🔍 &nbsp;Analyze Resume'
+      : '🏢 &nbsp;Run Recruiter Analysis';
   }
 }
 
-// ── Render ────────────────────────────────────────────────────────────────
-function renderResults(data) {
-  const skillDemand  = data.skill_demand   || [];
-  const trending     = data.trending_skills || [];
-  const gaps         = data.skill_gaps      || [];
-  const jobs         = data.job_matches     || [];
-  const salary       = data.salary_insights || {};
-  const learning     = data.learning_path   || [];
-  const skills       = data.skills          || [];
+// ── Candidate Render ──────────────────────────────────────────────────────
+function renderCandidate(data) {
+  setScore('semScore', 'semBar', data.semantic_score);
+  setScore('atsScore', 'atsBar', data.ats_score);
+  setScore('kwScore',  'kwBar',  data.keyword_density);
 
-  // Summary
-  document.getElementById('summaryText').textContent = data.market_summary || '';
+  document.getElementById('resumeSkillsPills').innerHTML  = pills(data.resume_skills, 'p-green');
+  document.getElementById('jdSkillsPills').innerHTML      = pills(data.jd_skills, 'p-blue');
+  document.getElementById('missingSkillsPills').innerHTML = data.missing_skills?.length
+    ? pills(data.missing_skills, 'p-red')
+    : `<span style="color:var(--green)">No missing skills 🎉</span>`;
 
-  // Metrics
-  const highDemand = skillDemand.filter(s => s.level === 'high').length;
-  const avgMatch   = jobs.length ? Math.round(jobs.reduce((a, j) => a + (j.match_pct || 0), 0) / jobs.length) : 0;
-  document.getElementById('mSkills').textContent    = skills.length;
-  document.getElementById('mHighDemand').textContent = highDemand;
-  document.getElementById('mHighDemand').className  = 'metric-val ' + scoreClass(highDemand * 10);
-  document.getElementById('mMatch').textContent     = avgMatch + '%';
-  document.getElementById('mMatch').className       = 'metric-val ' + scoreClass(avgMatch);
-  document.getElementById('mGaps').textContent      = gaps.length;
-  document.getElementById('mGaps').className        = 'metric-val ' + (gaps.length > 5 ? 'c-red' : 'c-yellow');
-
-  // 1. Skill Demand Chart
-  renderSkillDemand(skillDemand);
-
-  // 2. Trending Chart
-  renderTrending(trending);
-
-  // 3. Gaps Chart
-  renderGaps(gaps);
-
-  // 4. Jobs Chart
-  renderJobs(jobs);
-
-  // 5. Salary
-  renderSalary(salary, jobs);
-
-  // 6. Learning Path
-  renderLearning(learning);
-
-  // Raw JSON
-  document.getElementById('rawJson').textContent = JSON.stringify(data, null, 2);
-}
-
-// ─ 1. Skill Demand ────────────────────────────────────────────────────────
-function renderSkillDemand(skillDemand) {
-  const sorted = [...skillDemand].sort((a, b) => b.demand_score - a.demand_score);
-
-  destroyChart('skillDemandChart');
-  const ctx = document.getElementById('skillDemandChart').getContext('2d');
-  charts['skillDemandChart'] = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: sorted.map(s => s.skill),
-      datasets: [{
-        data: sorted.map(s => s.demand_score),
-        backgroundColor: sorted.map(s => {
-          if (s.level === 'high')   return '#00e5a0cc';
-          if (s.level === 'medium') return '#f5c542cc';
-          return '#ff5e5ecc';
-        }),
-        borderRadius: 6,
-      }]
-    },
-    options: {
-      ...CHART_DEFAULTS,
-      plugins: {
-        ...CHART_DEFAULTS.plugins,
-        tooltip: { callbacks: { label: ctx => `Demand: ${ctx.raw}/100` } }
-      },
-      scales: { ...CHART_DEFAULTS.scales, y: { ...CHART_DEFAULTS.scales.y, max: 100 } }
-    }
-  });
-
-  // Pill cols
-  document.getElementById('demandPills').innerHTML = `
-    <div>
-      <div class="pill-col-title" style="color:var(--green)">🔥 High Demand</div>
-      <div class="pill-row">${skillDemand.filter(s=>s.level==='high').map(s=>`<span class="pill pill-green">${s.skill}</span>`).join('') || '<span style="color:#444">None</span>'}</div>
-    </div>
-    <div>
-      <div class="pill-col-title" style="color:var(--yellow)">⚡ Medium Demand</div>
-      <div class="pill-row">${skillDemand.filter(s=>s.level==='medium').map(s=>`<span class="pill pill-yellow">${s.skill}</span>`).join('') || '<span style="color:#444">None</span>'}</div>
-    </div>
-    <div>
-      <div class="pill-col-title" style="color:var(--red)">❄️ Low Demand</div>
-      <div class="pill-row">${skillDemand.filter(s=>s.level==='low').map(s=>`<span class="pill pill-red">${s.skill}</span>`).join('') || '<span style="color:#444">None</span>'}</div>
-    </div>`;
-
-  // Insights
-  const icons = { rising: '📈', declining: '📉', stable: '➡️' };
-  document.getElementById('skillInsights').innerHTML =
-    '<div style="font-size:0.78rem;font-weight:700;margin-bottom:0.5rem">💬 Skill Insights</div>' +
-    sorted.slice(0, 6).map(s => `
-      <div class="skill-row">
-        <span class="skill-name">${s.skill}</span>
-        <span class="skill-trend">${icons[s.trend]||'➡️'} ${(s.trend||'').charAt(0).toUpperCase()+s.trend.slice(1)}</span>
-        <span class="skill-comment">${s.market_comment || ''}</span>
-      </div>`).join('');
-}
-
-// ─ 2. Trending ────────────────────────────────────────────────────────────
-function renderTrending(trending) {
-  const sorted = [...trending].sort((a, b) => b.demand_score - a.demand_score);
-  destroyChart('trendingChart');
-  const ctx = document.getElementById('trendingChart').getContext('2d');
-  charts['trendingChart'] = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: sorted.map(s => s.skill),
-      datasets: [{
-        data: sorted.map(s => s.demand_score),
-        backgroundColor: sorted.map((_, i) => `hsla(${160 - i*10}, 80%, ${50 + i*2}%, 0.8)`),
-        borderRadius: 6,
-      }]
-    },
-    options: {
-      ...CHART_DEFAULTS,
-      indexAxis: 'y',
-      scales: {
-        x: { ...CHART_DEFAULTS.scales.x, max: 100 },
-        y: { ...CHART_DEFAULTS.scales.y }
-      }
-    }
-  });
-}
-
-// ─ 3. Gaps ────────────────────────────────────────────────────────────────
-function renderGaps(gaps) {
-  const sorted = [...gaps].sort((a, b) => b.demand_score - a.demand_score);
-  destroyChart('gapChart');
-  const ctx = document.getElementById('gapChart').getContext('2d');
-  charts['gapChart'] = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: sorted.map(s => s.skill),
-      datasets: [{
-        data: sorted.map(s => s.demand_score),
-        backgroundColor: '#ff5e5ecc',
-        borderRadius: 6,
-      }]
-    },
-    options: {
-      ...CHART_DEFAULTS,
-      scales: { ...CHART_DEFAULTS.scales, y: { ...CHART_DEFAULTS.scales.y, max: 100 } }
-    }
-  });
-
-  document.getElementById('gapList').innerHTML = sorted.map(g => `
-    <div class="gap-row">
-      <span class="gap-skill">${g.skill}</span>
-      <span class="gap-why">${g.why_needed || ''}</span>
-    </div>`).join('') || '<div style="color:var(--green)">🎉 No critical skill gaps found!</div>';
-}
-
-// ─ 4. Jobs ────────────────────────────────────────────────────────────────
-function renderJobs(jobs) {
-  const sorted = [...jobs].sort((a, b) => b.match_pct - a.match_pct).slice(0, 8);
-  destroyChart('jobChart');
-  const ctx = document.getElementById('jobChart').getContext('2d');
-  charts['jobChart'] = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: sorted.map(j => j.title),
-      datasets: [{
-        data: sorted.map(j => j.match_pct),
-        backgroundColor: sorted.map(j => scoreColor(j.match_pct) + 'cc'),
-        borderRadius: 6,
-      }]
-    },
-    options: {
-      ...CHART_DEFAULTS,
-      indexAxis: 'y',
-      scales: {
-        x: { ...CHART_DEFAULTS.scales.x, max: 100 },
-        y: { ...CHART_DEFAULTS.scales.y }
-      },
-      plugins: {
-        ...CHART_DEFAULTS.plugins,
-        tooltip: { callbacks: { label: ctx => `Match: ${ctx.raw}%` } }
-      }
-    }
-  });
-
-  document.getElementById('jobCards').innerHTML = sorted.slice(0, 5).map(j => {
-    const mc    = scoreColor(j.match_pct);
-    const reqH  = (j.required_skills||[]).slice(0,5).map(s=>`<span class="pill pill-blue">${s}</span>`).join('');
-    const misH  = (j.missing_skills ||[]).slice(0,4).map(s=>`<span class="pill pill-red">${s}</span>`).join('');
-    return `
-    <div class="job-card">
-      <div class="job-header">
-        <div class="job-title">${j.title}</div>
-        <div class="job-match" style="color:${mc}">${j.match_pct}%</div>
-      </div>
-      <div class="job-salary">💰 $${j.avg_salary_usd || 'N/A'}</div>
-      <div class="job-section-label">Required Skills</div>
-      <div class="pill-row" style="margin-bottom:0.5rem">${reqH}</div>
-      ${misH ? `<div class="job-section-label">Missing</div><div class="pill-row">${misH}</div>` : ''}
-    </div>`;
-  }).join('');
-}
-
-// ─ 5. Salary ─────────────────────────────────────────────────────────────
-function renderSalary(salary, jobs) {
-  document.getElementById('salSummary').textContent   = '💡 ' + (salary.market_summary || '');
-  document.getElementById('salCurrent').textContent   = salary.current_estimated_range || 'N/A';
-  document.getElementById('salPotential').textContent = salary.potential_range_with_upskilling || 'N/A';
-
-  // Salary by role chart
-  const byRole = salary.by_role || [];
-  if (byRole.length) {
-    const parseNum = s => parseInt((s||'0').replace(/\D/g,'')) || 0;
-    destroyChart('salaryChart');
-    const ctx = document.getElementById('salaryChart').getContext('2d');
-    charts['salaryChart'] = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: byRole.map(r => r.role),
-        datasets: [
-          { label: 'Min',  data: byRole.map(r => parseNum(r.min)), backgroundColor: '#4f9eff88', borderRadius: 4 },
-          { label: 'Avg',  data: byRole.map(r => parseNum(r.avg)), backgroundColor: '#f5c54288', borderRadius: 4 },
-          { label: 'Max',  data: byRole.map(r => parseNum(r.max)), backgroundColor: '#00e5a088', borderRadius: 4 },
-        ]
-      },
-      options: {
-        ...CHART_DEFAULTS,
-        plugins: { legend: { display: true, labels: { color: '#888', font: { family: 'IBM Plex Mono', size: 11 } } } },
-      }
-    });
-
-    // Table
-    document.getElementById('salBody').innerHTML = byRole.map(r => `
-      <tr>
-        <td style="font-weight:600">${r.role}</td>
-        <td style="color:var(--blue)">${r.min}</td>
-        <td style="color:var(--yellow)">${r.avg}</td>
-        <td style="color:var(--green)">${r.max}</td>
-      </tr>`).join('');
+  // Roadmap
+  if (data.roadmap && data.roadmap.skills?.length) {
+    document.getElementById('roadmapSection').style.display = 'block';
+    renderRoadmap(data.roadmap);
+  } else {
+    document.getElementById('roadmapSection').style.display = 'none';
   }
+
+  // Debug
+  const d = data.debug || {};
+  document.getElementById('debugContent').innerHTML = `
+    <div><span style="color:var(--green)">JD keywords (${(d.jd_keywords||[]).length}):</span> ${(d.jd_keywords||[]).join(', ')}</div>
+    <div><span style="color:var(--green)">Matched (${(d.matched||[]).length}):</span> ${(d.matched||[]).join(', ')}</div>
+    <div><span style="color:var(--red)">Not matched (${(d.not_matched||[]).length}):</span> ${(d.not_matched||[]).join(', ')}</div>`;
+
+  document.getElementById('rawJsonCandidate').textContent = JSON.stringify({
+    semantic_score: data.semantic_score, ats_score: data.ats_score,
+    keyword_density: data.keyword_density, resume_skills: data.resume_skills,
+    jd_skills: data.jd_skills, missing_skills: data.missing_skills,
+  }, null, 2);
 }
 
-// ─ 6. Learning Path ───────────────────────────────────────────────────────
-function renderLearning(learning) {
-  const priorityColor = p => p === 'high' ? '#00e5a0' : p === 'medium' ? '#f5c542' : '#888';
-  document.getElementById('learnGrid').innerHTML = learning.map(item => {
-    const pc = priorityColor(item.priority);
-    return `
-    <div class="learn-card">
-      <div class="learn-header">
-        <div class="learn-skill" style="color:${pc}">${(item.skill||'').toUpperCase()}</div>
-        <span class="learn-badge" style="color:${pc};border-color:${pc}40;background:${pc}20">${(item.priority||'').toUpperCase()}</span>
+// ── Roadmap Render ────────────────────────────────────────────────────────
+function renderRoadmap(roadmap) {
+  const overall  = roadmap.overall || {};
+  const skills   = roadmap.skills  || [];
+  const content  = document.getElementById('roadmapContent');
+
+  const orderHtml = (overall.recommended_order||[]).map(s =>
+    `<span style="font-family:'IBM Plex Mono',monospace;font-size:0.72rem;background:#ffffff08;padding:0.1rem 0.5rem;border-radius:5px">${s}</span>`
+  ).join(' → ');
+
+  const qwHtml = (overall.quick_wins||[]).map(s =>
+    `<span class="pill p-green">⚡ ${s}</span>`
+  ).join('');
+
+  content.innerHTML = `
+    <div class="roadmap-overview">
+      <div style="font-size:0.62rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--green);font-family:'IBM Plex Mono',monospace;margin-bottom:0.75rem">📅 COMPLETE LEARNING ROADMAP</div>
+      <div class="roadmap-stats">
+        <div><div class="stat-val c-green">${overall.total_days||'?'}</div><div class="stat-lbl">Total Days</div></div>
+        <div><div class="stat-val c-yellow">${overall.total_weeks||'?'}</div><div class="stat-lbl">Weeks</div></div>
+        <div><div class="stat-val" style="color:var(--blue)">${overall.hours_per_day||2}h</div><div class="stat-lbl">Per Day</div></div>
+        <div><div style="font-size:1rem;font-weight:800;color:#ff9f5e;padding-top:0.4rem">${overall.difficulty||''}</div><div class="stat-lbl">Difficulty</div></div>
       </div>
-      <div class="learn-resource">📚 ${item.resource || ''}</div>
-      <div class="learn-meta">
-        <span>⏱ ${item.estimated_time || ''}</span>
-        <span class="learn-salary">💰 ${item.salary_impact || ''}</span>
+      ${overall.summary ? `<div style="font-size:0.85rem;color:#888;font-style:italic;margin-bottom:0.75rem">💡 ${overall.summary}</div>` : ''}
+      ${orderHtml ? `<div style="margin-bottom:0.6rem"><span style="font-size:0.62rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:0.12em">Order: </span>${orderHtml}</div>` : ''}
+      ${qwHtml ? `<div><span style="font-size:0.62rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;letter-spacing:0.12em">Quick Wins: </span><div class="pills" style="margin-top:0.35rem">${qwHtml}</div></div>` : ''}
+    </div>` + skills.map((sk, idx) => renderSkillRoadmap(sk, idx)).join('');
+}
+
+function renderSkillRoadmap(sk, idx) {
+  const te  = sk.time_estimate || {};
+  const pc  = {critical:'#ff5e5e',high:'#f5c542',medium:'#4f9eff',low:'#888'}[sk.priority] || '#888';
+  const dc  = {easy:'#00e5a0',moderate:'#f5c542',hard:'#ff5e5e','very hard':'#ff2e2e'}[(sk.difficulty||'').toLowerCase()] || '#888';
+  const uid = `sk_${idx}`;
+
+  const phasesHtml = (sk.phases||[]).map(ph => {
+    const cls = {beginner:'beg',intermediate:'int',expert:'exp'}[ph.phase] || 'beg';
+    const col = {beginner:'var(--green)',intermediate:'var(--yellow)',expert:'var(--red)'}[ph.phase] || '#888';
+    const ico = {beginner:'🟢',intermediate:'🟡',expert:'🔴'}[ph.phase] || '📌';
+    return `<div class="phase-card ${cls}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem">
+        <span style="font-weight:700;font-size:0.88rem">${ico} ${ph.days||''}</span>
+        <span style="font-size:0.6rem;font-family:'IBM Plex Mono',monospace;color:var(--muted);text-transform:uppercase">${ph.phase||''}</span>
       </div>
+      <div style="font-size:0.82rem;margin-bottom:0.25rem"><b>Focus:</b> ${ph.daily_focus||''}</div>
+      <div style="font-size:0.78rem;color:#888;margin-bottom:0.25rem">🎯 <b>Daily goal:</b> ${ph.daily_goal||''}</div>
+      <div style="font-size:0.78rem;color:${col}">✅ <b>By end:</b> ${ph.phase_outcome||''}</div>
     </div>`;
   }).join('');
+
+  const approachHtml = (sk.approach||[]).map(s =>
+    `<div class="approach-row">
+      <div class="step-badge">STEP ${s.step}</div>
+      <div>
+        <div style="font-size:0.88rem;font-weight:600;margin-bottom:0.2rem">${s.action||''}</div>
+        <div style="font-size:0.72rem;font-family:'IBM Plex Mono',monospace;color:var(--blue)">⏱ ${s.duration||''}</div>
+      </div>
+    </div>`
+  ).join('');
+
+  const milestoneHtml = (sk.milestones||[]).map(m => `<span class="m-chip">✓ ${m}</span>`).join('');
+  const dosHtml   = (sk.tips?.do   || []).map(d => `<div class="do-chip">${d}</div>`).join('');
+  const dontsHtml = (sk.tips?.dont || []).map(d => `<div class="dont-chip">${d}</div>`).join('');
+
+  const courseCard = (c, stage) => {
+    const tagColors = {beginner:'var(--green)',intermediate:'var(--yellow)',expert:'var(--red)'};
+    const yt = `https://www.youtube.com/results?search_query=${encodeURIComponent(c.search_query||'')}`;
+    return `<div class="course-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem">
+        <div style="font-weight:700;font-size:0.88rem">${c.title||''}</div>
+        <span style="font-size:0.62rem;color:${tagColors[stage]};border:1px solid ${tagColors[stage]}40;background:${tagColors[stage]}15;padding:0.1rem 0.5rem;border-radius:999px;font-family:'IBM Plex Mono',monospace">${stage.toUpperCase()}</span>
+      </div>
+      <div style="font-size:0.78rem;color:var(--blue);font-family:'IBM Plex Mono',monospace;margin-bottom:0.3rem">📺 ${c.channel||''}</div>
+      <div style="font-size:0.78rem;color:#888;margin-bottom:0.5rem">${c.what_you_learn||''}</div>
+      <div style="display:flex;gap:1rem;align-items:center">
+        <span style="font-size:0.72rem;color:var(--muted)">⏱ ${c.duration||''}</span>
+        <a href="${yt}" target="_blank" style="font-size:0.72rem;color:var(--red);text-decoration:none;font-family:'IBM Plex Mono',monospace">🔴 Search on YouTube →</a>
+      </div>
+    </div>`;
+  };
+
+  const begCourses = (sk.courses?.beginner||[]).map(c => courseCard(c,'beginner')).join('');
+  const intCourses = (sk.courses?.intermediate||[]).map(c => courseCard(c,'intermediate')).join('');
+  const expCourses = (sk.courses?.expert||[]).map(c => courseCard(c,'expert')).join('');
+
+  return `
+  <div class="skill-rmap-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.65rem">
+      <div>
+        <div style="font-size:1.05rem;font-weight:800">🛠️ ${(sk.skill||'').charAt(0).toUpperCase()+(sk.skill||'').slice(1)}</div>
+        <div style="font-size:0.8rem;color:#888;margin-top:0.2rem">${sk.why_important||''}</div>
+      </div>
+      <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
+        <span style="font-size:0.6rem;background:${pc}15;border:1px solid ${pc}40;color:${pc};padding:0.18rem 0.55rem;border-radius:999px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase">${sk.priority||''}</span>
+        <span style="font-size:0.6rem;background:${dc}15;border:1px solid ${dc}40;color:${dc};padding:0.18rem 0.55rem;border-radius:999px;font-family:'IBM Plex Mono',monospace">${sk.difficulty||''}</span>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:0.82rem;font-weight:800;color:var(--green)">≈ ${te.total_days||'?'} days</span>
+      </div>
+    </div>
+    <div style="font-size:0.62rem;color:var(--muted);font-family:'IBM Plex Mono',monospace;display:flex;justify-content:space-between;margin-bottom:0.25rem">
+      <span>🟢 Beginner (${te.beginner_days||0}d)</span>
+      <span>🟡 Intermediate (${te.intermediate_days||0}d)</span>
+      <span>🔴 Expert (${te.expert_days||0}d)</span>
+    </div>
+    <div class="timeline-track">
+      <div class="tl-beg" style="flex:${te.beginner_days||1}"></div>
+      <div class="tl-int" style="flex:${te.intermediate_days||1}"></div>
+      <div class="tl-exp" style="flex:${te.expert_days||1}"></div>
+    </div>
+    <div style="font-size:0.68rem;color:#444;font-family:'IBM Plex Mono',monospace;margin-bottom:1rem">${te.time_note||''}</div>
+
+    <div class="tabs" id="tabs_${uid}">
+      <button class="tab-btn active" onclick="switchTab('${uid}','dayplan',this)">📅 Day Plan</button>
+      <button class="tab-btn" onclick="switchTab('${uid}','approach',this)">🧭 Approach</button>
+      <button class="tab-btn" onclick="switchTab('${uid}','milestones',this)">🏁 Milestones</button>
+      <button class="tab-btn" onclick="switchTab('${uid}','beginner',this)">🟢 Beginner</button>
+      <button class="tab-btn" onclick="switchTab('${uid}','advanced',this)">🟡🔴 Advanced</button>
+    </div>
+
+    <div id="${uid}_dayplan" class="tab-pane active">${phasesHtml || '<span style="color:var(--muted)">No phase data.</span>'}</div>
+    <div id="${uid}_approach" class="tab-pane">${approachHtml || '<span style="color:var(--muted)">No approach steps.</span>'}</div>
+    <div id="${uid}_milestones" class="tab-pane">
+      ${milestoneHtml ? `<div style="font-weight:700;font-size:0.82rem;margin-bottom:0.6rem">🏁 Milestones</div><div class="milestone-chips">${milestoneHtml}</div>` : ''}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:0.75rem">
+        <div><div style="font-weight:700;font-size:0.82rem;margin-bottom:0.5rem">✅ Do This</div>${dosHtml}</div>
+        <div><div style="font-weight:700;font-size:0.82rem;margin-bottom:0.5rem">❌ Avoid</div>${dontsHtml}</div>
+      </div>
+    </div>
+    <div id="${uid}_beginner" class="tab-pane">${begCourses || '<span style="color:var(--muted)">No beginner courses.</span>'}</div>
+    <div id="${uid}_advanced" class="tab-pane">
+      ${intCourses ? `<div style="font-weight:700;font-size:0.82rem;margin-bottom:0.5rem">🟡 Intermediate</div>${intCourses}` : ''}
+      ${expCourses ? `<div style="font-weight:700;font-size:0.82rem;margin-bottom:0.5rem;margin-top:0.5rem">🔴 Expert</div>${expCourses}` : ''}
+      ${!intCourses && !expCourses ? '<span style="color:var(--muted)">No advanced courses.</span>' : ''}
+    </div>
+  </div>`;
+}
+
+function switchTab(uid, tab, btn) {
+  const card = btn.closest('.skill-rmap-card');
+  card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  card.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(`${uid}_${tab}`).classList.add('active');
+}
+
+// ── Recruiter Render ──────────────────────────────────────────────────────
+function renderRecruiter(data) {
+  const r = data.report || {};
+  const verdict = r.verdict || '';
+  const vc = verdict.includes('Strong') || verdict.includes('Hire') ? '#00e5a0'
+           : verdict.includes('Good') || verdict.includes('Maybe') ? '#f5c542'
+           : '#ff5e5e';
+
+  document.getElementById('verdictBanner').innerHTML = `
+    <div class="verdict-banner" style="background:${vc}10;border-color:${vc}50">
+      <div style="font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:${vc};font-family:'IBM Plex Mono',monospace;margin-bottom:0.5rem">HIRING VERDICT</div>
+      <div style="font-size:1.8rem;font-weight:800;color:${vc};margin-bottom:0.5rem">${verdict.includes('Strong')||verdict.includes('Hire') ? '✅' : verdict.includes('Good')||verdict.includes('Maybe') ? '⚠️' : '❌'} ${verdict}</div>
+      <div style="font-size:0.88rem;color:#aaa">${r.verdict_reason||''}</div>
+    </div>`;
+
+  const os = r.overall_score || 0;
+  document.getElementById('overallScore').textContent = os;
+  document.getElementById('overallScore').className   = 'big-score ' + scoreClass(os);
+  document.getElementById('salaryBand').textContent   = (r.salary_band_fit||'').toUpperCase();
+
+  const scoreLabels = {skill_match:'Skill Match',experience_relevance:'Experience Relevance',communication_clarity:'Communication Clarity',technical_depth:'Technical Depth',culture_fit_indicators:'Culture Fit'};
+  const scores = r.scores || {};
+  document.getElementById('scoreRows').innerHTML = Object.entries(scoreLabels).map(([k,lbl]) => {
+    const v = scores[k] || 0;
+    const c = scoreColor(v);
+    return `<div class="score-row">
+      <div class="score-row-label"><span style="color:#888;font-size:0.78rem">${lbl}</span><span style="font-family:'IBM Plex Mono',monospace;color:${c};font-weight:700;font-size:0.78rem">${v}/100</span></div>
+      <div class="score-mini-bar"><div class="score-mini-fill" style="width:${v}%;background:${c}"></div></div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('candidateSummary').innerHTML = `
+    <div style="font-size:0.65rem;letter-spacing:0.2em;color:var(--purple);font-family:'IBM Plex Mono',monospace;margin-bottom:0.5rem">CANDIDATE SUMMARY</div>
+    <div style="font-size:0.9rem;line-height:1.7">${r.candidate_summary||''}</div>`;
+
+  document.getElementById('strengthsList').innerHTML = (r.strengths||[]).map(s => `<div class="strength-card">${s}</div>`).join('');
+
+  const flags = [...(r.red_flags||[]), ...(r._meta?.rule_flags||[])];
+  document.getElementById('flagsList').innerHTML = flags.length
+    ? flags.map(f => `<div class="flag-card">${f}</div>`).join('')
+    : `<span style="color:var(--green);font-size:0.88rem">No red flags detected ✅</span>`;
+
+  const meta = r._meta || {};
+  const mp   = meta.match_pct || 0;
+  document.getElementById('matchPctVal').textContent   = mp + '%';
+  document.getElementById('matchPctVal').style.color   = scoreColor(mp);
+  document.getElementById('matchPctBar').style.width   = mp + '%';
+  document.getElementById('matchPctBar').style.background = scoreColor(mp);
+
+  const skb = r.skill_match_breakdown || {};
+  document.getElementById('skillMatched').innerHTML  = pills(skb.matched,              'p-green');
+  document.getElementById('skillCritical').innerHTML = pills(skb.missing_critical,     'p-red');
+  document.getElementById('skillNice').innerHTML     = pills(skb.missing_nice_to_have, 'p-yellow');
+  document.getElementById('skillBonus').innerHTML    = pills(skb.bonus_skills,         'p-blue');
+
+  setScore('rSemScore', 'rSemBar', data.semantic_score);
+  setScore('rAtsScore', 'rAtsBar', data.ats_score);
+  setScore('rKwScore',  'rKwBar',  data.keyword_density);
+
+  document.getElementById('interviewQs').innerHTML = (r.interview_questions||[]).map((q,i) => `
+    <div class="interview-q">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:0.62rem;color:var(--purple);margin-bottom:0.4rem;letter-spacing:0.15em">Q${String(i+1).padStart(2,'0')}</div>
+      <div style="font-size:0.9rem;margin-bottom:0.4rem">${q.question||''}</div>
+      <div style="font-size:0.75rem;color:var(--muted)">💡 ${q.reason||''}</div>
+    </div>`).join('');
+
+  document.getElementById('hiringRec').textContent = r.hiring_recommendation || '';
+  document.getElementById('rawJsonRecruiter').textContent = JSON.stringify(r, null, 2);
 }
 </script>
 </body>
