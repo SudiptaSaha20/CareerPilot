@@ -372,11 +372,18 @@ export default function ResumeAnalyzerPage() {
       setJd(contextJd);
       return;
     }
-    // Context is empty (e.g. page refresh) — load JD from DB
+    // Context is empty (e.g. page refresh) — load JD and full analysis from DB
     fetch("/api/resume/latest")
       .then(r => r.json())
       .then(data => {
         if (data.resume?.jobDescription) setJd(data.resume.jobDescription);
+        // Restore the full candidate result (including roadmap) from the saved analysis blob
+        if (data.resume?.analysis) {
+          const saved = data.resume.analysis as CandidateResult;
+          if (saved.roadmap || saved.semantic_score !== undefined) {
+            setCandidateResult(saved);
+          }
+        }
       })
       .catch(() => {});
   }, [contextJd]);
