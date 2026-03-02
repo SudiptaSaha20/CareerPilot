@@ -163,7 +163,14 @@ export default function InterviewGuide() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role, experience, focus: focusAreas.length > 0 ? focusAreas : [] }),
       });
-      const data = await res.json();
+      const text = await res.text();
+      if (!text) throw new Error("Empty response from server. Check that PYTHON_API_URL is set.");
+      let data: any;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error("Server returned invalid response. Please try again.");
+      }
       if (!res.ok) throw new Error(data.detail || data.error || "Failed to generate questions");
       setQuestions(data.questions || []);
       setAnswers(new Array(data.questions.length).fill(""));
