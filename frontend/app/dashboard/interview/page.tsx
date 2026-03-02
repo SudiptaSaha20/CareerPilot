@@ -158,13 +158,13 @@ export default function InterviewGuide() {
     if (!role.trim()) { toast.error("Please enter a job role first"); return; }
     setLoadingQuestions(true);
     try {
-      const res = await fetch(`${API}/interview/questions`, {
+      const res = await fetch(`/api/interview/questions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role, experience, focus: focusAreas }),
+        body: JSON.stringify({ role, experience, focus: focusAreas.length > 0 ? focusAreas : [] }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Failed to generate questions");
+      if (!res.ok) throw new Error(data.detail || data.error || "Failed to generate questions");
       setQuestions(data.questions || []);
       setAnswers(new Array(data.questions.length).fill(""));
       toast.success(`${data.questions.length} questions generated!`);
@@ -241,13 +241,13 @@ export default function InterviewGuide() {
   const getFeedback = async (finalAnswers: string[]) => {
     setLoadingFeedback(true);
     try {
-      const res = await fetch(`${API}/interview/feedback`, {
+      const res = await fetch(`/api/interview/evaluate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role, questions, answers: finalAnswers }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Failed to generate feedback");
+      if (!res.ok) throw new Error(data.detail || data.error || "Failed to generate feedback");
       setFeedback(data);
       // ── Persist to context so /report can use it ──────────────────────────
       setInterviewResult({ role, questions, answers: finalAnswers, feedback: data });

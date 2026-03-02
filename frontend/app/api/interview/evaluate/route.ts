@@ -4,7 +4,7 @@ const PYTHON_API_URL = process.env.PYTHON_API_URL;
 
 export async function POST(request: NextRequest) {
   try {
-    const { question, answer, sessionId, difficulty } = await request.json();
+    const { role, questions, answers } = await request.json();
 
     if (!PYTHON_API_URL) {
       return NextResponse.json(
@@ -13,16 +13,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const response = await fetch(`${PYTHON_API_URL}/evaluate`, {
+    const response = await fetch(`${PYTHON_API_URL}/interview/feedback`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        question,
-        answer,
-        sessionId,
-        difficulty,
+        role,
+        questions,
+        answers,
       }),
     });
 

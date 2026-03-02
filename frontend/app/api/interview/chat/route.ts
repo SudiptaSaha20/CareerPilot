@@ -4,7 +4,7 @@ const PYTHON_API_URL = process.env.PYTHON_API_URL;
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, sessionId, conversationHistory } = await request.json();
+    const { role, question, answer, history } = await request.json();
 
     if (!PYTHON_API_URL) {
       return NextResponse.json(
@@ -13,15 +13,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const response = await fetch(`${PYTHON_API_URL}/chat`, {
+    const response = await fetch(`${PYTHON_API_URL}/interview/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        message,
-        sessionId,
-        conversationHistory,
+        role,
+        question,
+        answer,
+        history,
       }),
     });
 
