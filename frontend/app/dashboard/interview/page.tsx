@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useResume } from "@/context";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -109,6 +110,7 @@ type Stage = "setup" | "mock-intro" | "mock-active" | "mock-feedback";
 
 export default function InterviewGuide() {
   // ── Setup state ────────────────────────────────────────────────────────────
+  const { setInterviewResult } = useResume();
   const [role, setRole] = useState("");
   const [experience, setExperience] = useState(EXPERIENCE_OPTIONS[1]);
   const [focusAreas, setFocusAreas] = useState<string[]>([]);
@@ -247,6 +249,8 @@ export default function InterviewGuide() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || "Failed to generate feedback");
       setFeedback(data);
+      // ── Persist to context so /report can use it ──────────────────────────
+      setInterviewResult({ role, questions, answers: finalAnswers, feedback: data });
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to generate feedback");
     } finally {

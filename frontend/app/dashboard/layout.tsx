@@ -128,9 +128,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {currentPage?.label || "Dashboard"}
           </h2>
           <div className="flex items-center gap-3">
-            <div className="rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
-              Score: 78
-            </div>
             <Link href="/profile">
               <Avatar className="h-8 w-8 cursor-pointer ring-2 ring-transparent hover:ring-primary/30 transition-all">
                 <AvatarImage src={session?.user?.image ?? undefined} />
