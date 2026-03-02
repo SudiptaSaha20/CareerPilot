@@ -21,7 +21,13 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({ role, experience, focus: focus || [] }),
     });
 
-    const data = await response.json();
+    let data;
+    try {
+      data = await response.json();
+    } catch (e) {
+      console.error('Failed to parse response:', e);
+      throw new Error('Invalid response from Python backend - is it running?');
+    }
     
     if (!response.ok) {
       throw new Error(data.detail || data.error || `API error: ${response.statusText}`);

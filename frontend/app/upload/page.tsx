@@ -115,10 +115,12 @@ export default function UploadPage() {
         className="relative z-10 w-full max-w-lg"
       >
         <div className="mb-8 text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm text-primary">
-            <Zap className="h-3.5 w-3.5" />
-            {stage === "jd" ? "Step 2 of 2" : "Step 1 of 2"}
-          </div>
+          {(stage === "idle" || stage === "jd") && (
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm text-primary">
+              <Zap className="h-3.5 w-3.5" />
+              {stage === "jd" ? "Step 2 of 2" : "Step 1 of 2"}
+            </div>
+          )}
           <h1 className="text-3xl font-bold text-foreground">
             {stage === "jd" ? "Add Job Description" : "Upload Your Resume"}
           </h1>
