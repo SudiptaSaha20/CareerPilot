@@ -106,6 +106,23 @@ export default function ReportPage() {
       const contentW = pageW - margin * 2;
       let y = 0;
 
+      // Sanitize text to remove problematic UTF-8 characters
+      const sanitizeText = (text: string): string => {
+        if (!text) return "";
+        return text
+          .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
+          .replace(/[\u2018\u2019]/g, "'")
+          .replace(/[\u201C\u201D]/g, '"')
+          .replace(/[\uFFFD]/g, "?")
+          .trim();
+      };
+
+      // Wrapper for doc.text that sanitizes automatically
+      const addText = (text: string, x: number, y: number, options?: any) => {
+        const sanitized = sanitizeText(text);
+        return doc.text(sanitized, x, y, options);
+      };
+
       const checkPageBreak = (neededH: number) => {
         if (y + neededH > pageH - 20) { doc.addPage(); y = 22; }
       };
@@ -260,7 +277,7 @@ export default function ReportPage() {
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(10);
         doc.setFont("helvetica", "bold");
-        doc.text(`Verdict: ${fb.verdict}`, margin + 4, y + 6.5);
+        addText(`Verdict: ${fb.verdict}`, margin + 4, y + 6.5);
         y += 14;
 
         // Strengths
@@ -275,7 +292,7 @@ export default function ReportPage() {
             doc.setFontSize(8.5);
             doc.setFont("helvetica", "normal");
             doc.setTextColor(80, 80, 100);
-            doc.text(`✓  ${s}`, margin + 2, y);
+            addText(`✓  ${s}`, margin + 2, y);
             y += 6;
           }
           y += 3;
@@ -296,18 +313,18 @@ export default function ReportPage() {
             doc.setFontSize(8.5);
             doc.setFont("helvetica", "bold");
             doc.setTextColor(60, 60, 80);
-            const qText = doc.splitTextToSize(`Q${i+1}: ${q.question}`, contentW - 6);
-            doc.text(qText[0], margin + 3, y + 5.5);
+            const qText = doc.splitTextToSize(sanitizeText(`Q${i+1}: ${q.question}`), contentW - 6);
+            addText(qText[0], margin + 3, y + 5.5);
             y += 11;
 
             // Answer
             doc.setFontSize(8);
             doc.setFont("helvetica", "normal");
             doc.setTextColor(80, 80, 100);
-            const ansLines = doc.splitTextToSize(ans, contentW - 4);
+            const ansLines = doc.splitTextToSize(sanitizeText(ans), contentW - 4);
             for (const line of ansLines.slice(0, 3)) {
               checkPageBreak(5);
-              doc.text(line, margin + 2, y);
+              addText(line, margin + 2, y);
               y += 5;
             }
 
@@ -318,11 +335,11 @@ export default function ReportPage() {
               doc.setTextColor(...sc);
               doc.setFontSize(8);
               doc.setFont("helvetica", "bold");
-              doc.text(`Score: ${pq.score}/100`, margin + 2, y);
+              addText(`Score: ${pq.score}/100`, margin + 2, y);
               doc.setFont("helvetica", "normal");
               doc.setTextColor(100, 100, 120);
-              const cLines = doc.splitTextToSize(pq.comment, contentW - 30);
-              doc.text(cLines[0] || "", margin + 28, y);
+              const cLines = doc.splitTextToSize(sanitizeText(pq.comment), contentW - 30);
+              addText(cLines[0] || "", margin + 28, y);
               y += 8;
             }
             y += 3;

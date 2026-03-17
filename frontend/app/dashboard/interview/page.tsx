@@ -41,7 +41,7 @@ interface ChatMsg {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const API = process.env.NEXT_PUBLIC_RESUME_API_URL || "http://localhost:8000";
+const API = process.env.NEXT_PUBLIC_PYTHON_API_URL || "http://localhost:8000";
 
 const EXPERIENCE_OPTIONS = [
   "Entry Level (0-2 yrs)",
@@ -158,13 +158,20 @@ export default function InterviewGuide() {
     if (!role.trim()) { toast.error("Please enter a job role first"); return; }
     setLoadingQuestions(true);
     try {
-      const res = await fetch(`${API}/interview/questions`, {
+      const res = await fetch(`/api/interview/questions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role, experience, focus: focusAreas }),
+        body: JSON.stringify({ role, experience, focus: focusAreas.length > 0 ? focusAreas : [] }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Failed to generate questions");
+      const text = await res.text();
+      if (!text) throw new Error("Empty response from server. Check that PYTHON_API_URL is set.");
+      let data: any;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error("Server returned invalid response. Please try again.");
+      }
+      if (!res.ok) throw new Error(data.detail || data.error || "Failed to generate questions");
       setQuestions(data.questions || []);
       setAnswers(new Array(data.questions.length).fill(""));
       toast.success(`${data.questions.length} questions generated!`);
@@ -241,13 +248,13 @@ export default function InterviewGuide() {
   const getFeedback = async (finalAnswers: string[]) => {
     setLoadingFeedback(true);
     try {
-      const res = await fetch(`${API}/interview/feedback`, {
+      const res = await fetch(`/api/interview/evaluate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ role, questions, answers: finalAnswers }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Failed to generate feedback");
+      if (!res.ok) throw new Error(data.detail || data.error || "Failed to generate feedback");
       setFeedback(data);
       // ── Persist to context so /report can use it ──────────────────────────
       setInterviewResult({ role, questions, answers: finalAnswers, feedback: data });

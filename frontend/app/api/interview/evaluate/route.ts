@@ -1,43 +1,70 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const INTERVIEW_API_URL = process.env.INTERVIEW_CHATBOT_API_URL;
-const INTERVIEW_API_KEY = process.env.INTERVIEW_CHATBOT_API_KEY;
+const PYTHON_API_URL = process.env.PYTHON_API_URL;
 
 export async function POST(request: NextRequest) {
   try {
-    const { question, answer, sessionId, difficulty } = await request.json();
+    const { role, questions, answers } = await request.json();
 
-    if (!INTERVIEW_API_URL) {
+    if (!PYTHON_API_URL) {
       return NextResponse.json(
-        { error: 'Interview API URL not configured' },
+        { error: 'Python API URL not configured' },
         { status: 500 }
       );
     }
 
-    const response = await fetch(`${INTERVIEW_API_URL}/evaluate`, {
+    const response = await fetch(`${PYTHON_API_URL}/interview/feedback`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(INTERVIEW_API_KEY && { 'Authorization': `Bearer ${INTERVIEW_API_KEY}` }),
       },
       body: JSON.stringify({
-        question,
-        answer,
-        sessionId,
-        difficulty,
+        role,
+        questions,
+        answers,
       }),
     });
 
-    if (!response.ok) {
-      throw new Error(`Interview API error: ${response.statusText}`);
+    // Read response body once
+    let text = '';
+    try {
+      text = await response.text();
+    } catch (e) {
+      console.error('Failed to read response:', e);
+      throw new Error('Failed to read backend response');
     }
 
-    const data = await response.json();
+    // Check if response is ok
+    if (!response.ok) {
+      console.error('Backend error response:', { status: response.status, text: text.slice(0, 500) });
+      let errorMsg = `Backend returned ${response.status}`;
+      try {
+        const errorJson = JSON.parse(text);
+        errorMsg = errorJson.detail || errorJson.error || errorMsg;
+      } catch {
+        errorMsg = text.slice(0, 200) || errorMsg;
+      }
+      throw new Error(errorMsg);
+    }
+
+    // Parse JSON
+    if (!text) {
+      throw new Error('Empty response body from backend');
+    }
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      console.error('JSON parse error:', e);
+      throw new Error('Backend returned invalid JSON');
+    }
+
     return NextResponse.json(data);
   } catch (error) {
     console.error('Interview evaluation error:', error);
     return NextResponse.json(
-      { error: 'Failed to evaluate answer' },
+      { error: error instanceof Error ? error.message : 'Failed to evaluate answer' },
       { status: 500 }
     );
   }

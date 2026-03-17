@@ -4,7 +4,7 @@ const PYTHON_API_URL = process.env.PYTHON_API_URL;
 
 export async function POST(request: NextRequest) {
   try {
-    const { role, question, answer, history } = await request.json();
+    const { role, experience, focus } = await request.json();
 
     if (!PYTHON_API_URL) {
       return NextResponse.json(
@@ -13,17 +13,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const response = await fetch(`${PYTHON_API_URL}/interview/chat`, {
+    const response = await fetch(`${PYTHON_API_URL}/interview/questions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        role,
-        question,
-        answer,
-        history: history || [],
-      }),
+      body: JSON.stringify({ role, experience, focus: focus || [] }),
     });
 
     // Read response body once
@@ -63,9 +58,9 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Interview chat error:', error);
+    console.error('Interview questions error:', error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to get response from interview chatbot' },
+      { error: error instanceof Error ? error.message : 'Failed to fetch interview questions' },
       { status: 500 }
     );
   }
